@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:taskmaster/models/comman_methods.dart';
+import 'package:taskmaster/models/custom_logger.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
 import 'package:taskmaster/screens/_main_scaffold.dart';
@@ -31,6 +32,7 @@ class _TaskListPageState extends State<TaskListPage> {
   ];
   //inital value for drop down in add task
   String _selectedFreq = 'Daily';
+  int currentList = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -43,10 +45,30 @@ class _TaskListPageState extends State<TaskListPage> {
           showDialog(
             context: context,
             builder: (context){
+              getLogger("TaskListPage", "Build").t("User Pressed Create Task");
               return addTaskDialog();
             }
           );
         }
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.check_box_outline_blank),
+            label: 'Uncompleted',
+            backgroundColor: Colors.blue
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.check_box),
+            label: 'Completed',
+            backgroundColor: Colors.green
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.do_disturb),
+            label: 'Unavailable',
+            backgroundColor: Colors.grey
+          ),
+        ]
       ),
       body: Consumer<Tasks>(
         builder: (context, tasklist, child){
@@ -125,6 +147,18 @@ class _TaskListPageState extends State<TaskListPage> {
     );
   }
 
+  ListView activeTaskListScreen(){
+    switch(currentList){
+      case 0:
+        return ListView();
+      default:
+        getLogger("TaskListPage", "activeTaskListScreen").e("A problem with a variable has happened", error: 'Variable outside of bounds for method');
+        return ListView();
+    }
+  }
+
+
+
   String findNextDue(Task task){
     switch(task.frequency){
       case "Daily":
@@ -132,7 +166,8 @@ class _TaskListPageState extends State<TaskListPage> {
       case "Weekly":
         return weekilyFreq(task);
       default:
-        return "This Message means there is a problem";
+        getLogger("TaskListPage", "findNextDue").e("A problem with a variable has happened", error: 'Variable outside of bounds for method');
+        return "Check Error Logs";
 
     }
   }
@@ -211,6 +246,7 @@ class _TaskListPageState extends State<TaskListPage> {
                         saveButton(tasklist),
                         IconButton(
                           onPressed: (){
+                            getLogger('TaskListPage', "addTaskDialog").t("New Task Cancelled");
                             Navigator.of(context).pop();
                             //These are to reset the variables if the Dialog is exited without saving
                             _selectedFreq = 'Daily';
@@ -460,6 +496,7 @@ class _TaskListPageState extends State<TaskListPage> {
         textStyle: Theme.of(context).textTheme.labelLarge, 
       ),
       onPressed: (){
+        getLogger('TaskListPage', "addTaskDialog").t("New Task Created");
         if (_formKey.currentState!.validate()){
           _formKey.currentState!.save();
           

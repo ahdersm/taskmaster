@@ -1,2 +1,0 @@
-Clean Code:
-- When making a page keep the layout in part of the code and actions in another faction for more readable code
