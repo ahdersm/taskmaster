@@ -15,30 +15,59 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as Task;
     return Scaffold(
-      appBar: CommanMethods.mainAppBar('Task Details'),
+      appBar: CommanMethods.mainAppBar('Task Details: ${args.name}'),
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text("Name: ${args.name}"),
-            Text("Description: ${args.description}"),
-            Text("Fequancy: ${args.frequency}"),
-            weeklyDays(args),
-            Text('Times to Complete'),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: 200, minHeight: 10),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: args.completetimes.length,
-                itemBuilder: (context, index){
-                  return ListTile(
-                    title: Text(args.completetimes[index].format(context)),
-                  );
-                }
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Description: "),
+                Flexible(child: Text(args.description)),
+              ]
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Fequancy: "),
+                Flexible(child: Text(args.frequency)),
+              ],
+            ),
+            weeklyDaysgrid(args),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Times to Complete'),
+                Flexible(
+                  child: ListView.builder(
+
+                    shrinkWrap: true,
+                    itemCount: args.completetimes.length,
+                    itemBuilder: (context, index){
+                      return ListTile(
+                        title: Center(child: Text(args.completetimes[index].format(context))),
+                      );
+                    },
+                  )
+                )
+              ],
             ),
             Text("Complete?: ${args.complete}"),
             Text("Task Points: ${args.points}"),
+            Text("Completes: ${args.completes}"),
+            Text("Fails: ${args.fails}"),
+            Text("Completed Times"),
+            ListView.builder(
+              shrinkWrap: true,
+              itemCount: args.datetimecompleted.length,
+              itemBuilder: (context, index){
+                return ListTile(
+                  title: Center(child: Text(args.datetimecompleted[index].toString())),
+                );
+              }
+            ),
             Consumer<Tasks>(
               builder: (context, tasklist, child){
                 return TextButton(
@@ -94,5 +123,43 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     else{
       return Container();
     }
+  }
+
+  Container weeklyDaysgrid(Task task){
+    const Map<int, String> weekdays = {1:'Monday', 2:'Tuesday', 3:'Wednesday', 4:'Thursday', 5:'Friday', 6:'Saturday', 7:'Sunday'};
+    if(task.frequency == "Weekly"){
+      return Container(
+        child: Row(
+          children: [
+            Text("Selected Days:"),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * (2/3),
+              //height: 50,
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: task.completedays.length,
+                padding: const EdgeInsets.all(5.0),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 4),
+                itemBuilder: (_, int index) {
+                  return Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8.0),
+                      border: Border.all(color: Colors.blueAccent),
+                    ),
+                    child: GridTile(
+                      child: Text(weekdays[task.completedays[index]]!),
+                    ),
+                  );
+                }
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return Container();
   }
 }

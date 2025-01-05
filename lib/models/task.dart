@@ -6,12 +6,13 @@ class Task extends ChangeNotifier{
   String name = '';
   String description = '';
   bool complete = false; //Weither or not the task was completed that day
+  bool fail = false; //if the task was failed that day
   String frequency = ''; //How frequently in days time does the user want this completed
   List<int> completedays = []; //Days during the week that this task should be completed on
   List<TimeOfDay> completetimes = []; //Times during the day that this task should be completed by
   List<DateTime> datetimecompleted = []; //Datetime of when the completed task was set to complete
-  int completed = 0; //Count of how many times this task was completed succefully
-  int failed = 0; //Count of how many times this task was not completed
+  int completes = 0; //Count of how many times this task was completed succefully
+  int fails = 0; //Count of how many times this task was not completed
   int points = 0; //how many points is this task worth
 
   Task(
@@ -21,11 +22,17 @@ class Task extends ChangeNotifier{
   void taskcomplete(){
     this.complete = true;
     this.datetimecompleted.add(DateTime.now());
-    this.completed += 1;
+    this.completes += 1;
+  }
+
+  void taskuncomplete(){
+    this.complete = false;
+    this.datetimecompleted.removeLast();
+    this.completes -= 1;
   }
 
   void taskfailed(){
-    this.failed += 1;
+    this.fails += 1;
   }
 
   void newtask({required String frequency, String? description, List<int>? completedays, List<TimeOfDay>? completetimes, required int points}){

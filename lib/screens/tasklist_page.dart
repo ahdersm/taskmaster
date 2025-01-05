@@ -5,7 +5,6 @@ import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/custom_logger.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
-import 'package:taskmaster/screens/_main_scaffold.dart';
 
 final _formKey = GlobalKey<FormState>();
 
@@ -33,9 +32,21 @@ class _TaskListPageState extends State<TaskListPage> {
   //inital value for drop down in add task
   String _selectedFreq = 'Daily';
   int currentList = 0;
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> taskListOptions = <Widget>[
+      uncompletedTaskList(),
+      completedTaskList(),
+      unavailableTaskList()
+    ];
     return Scaffold(
       appBar: CommanMethods.mainAppBar('Tasks'),
       drawer: CommanMethods.mainDrawer(context),
@@ -52,6 +63,9 @@ class _TaskListPageState extends State<TaskListPage> {
         }
       ),
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.amber[800],
+        onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.check_box_outline_blank),
@@ -70,94 +84,149 @@ class _TaskListPageState extends State<TaskListPage> {
           ),
         ]
       ),
-      body: Consumer<Tasks>(
-        builder: (context, tasklist, child){
-          List<Task> completed = tasklist.items.where((i) => i.complete == true).toList();
-          List<Task> uncompleted = tasklist.items.where((i) => i.complete == false).toList();
-          return Column(
-            children: [
-              Text("Uncompleted"),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: uncompleted.length,
-                  itemBuilder: (context, index){
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
-                      child: Card(
-                        child: ListTile(
-                          title: Text(uncompleted[index].name),
-                          subtitle: Text('Due next: ${findNextDue(uncompleted[index])}'),
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              '/task',
-                              arguments: uncompleted[index]
-                            );
-                          },
-                          trailing: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                uncompleted[index].taskcomplete();
-                              });
-                            },
-                            icon: Icon(Icons.check_box_outline_blank)
-                          )
-                        ),
-                      ),
-                    );
-                  }
-                ),
-              ),
-              Text("Completed"),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: completed.length,
-                  itemBuilder: (context, index){
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
-                      child: Card(
-                        child: ListTile(
-                          title: Text(completed[index].name),
-                          subtitle: Text('Due next: ${findNextDue(completed[index])}'),
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              '/task',
-                              arguments: completed[index]
-                            );
-                          },
-                          trailing: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                completed[index].complete = false;
-                              });
-                            },
-                            icon: Icon(Icons.check_box)
-                          )
-                        ),
-                      ),
-                    );
-                  }
-                ),
-              ),
-            ]
-          );
-        }
-      ),
+      body: taskListOptions.elementAt(_selectedIndex)
     );
   }
 
-  ListView activeTaskListScreen(){
-    switch(currentList){
-      case 0:
-        return ListView();
-      default:
-        getLogger("TaskListPage", "activeTaskListScreen").e("A problem with a variable has happened", error: 'Variable outside of bounds for method');
-        return ListView();
-    }
+  Consumer<Tasks> uncompletedTaskList(){
+    return Consumer<Tasks>(
+      builder: (context, tasklist, child){
+        List<Task> uncompleted = filterToday(tasklist.items.where((i) => i.complete == false).toList());
+
+        if(uncompleted.isEmpty){
+          return Center(child: Text("You have completed all tasks today!"));
+        }
+        return ListView.builder(
+          itemCount: uncompleted.length,
+          itemBuilder: (context, index){
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
+              child: Card(
+                child: ListTile(
+                  title: Text(uncompleted[index].name),
+                  subtitle: Text('Due next: ${findNextDue(uncompleted[index])}'),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/task',
+                      arguments: uncompleted[index]
+                    );
+                  },
+                  trailing: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        uncompleted[index].taskcomplete();
+                      });
+                    },
+                    icon: Icon(Icons.check_box_outline_blank)
+                  )
+                ),
+              ),
+            );
+          }
+        );
+      }
+    );
   }
 
+  Consumer<Tasks> completedTaskList(){
+    return Consumer<Tasks>(
+      builder: (context, tasklist, child){
+        List<Task> completed = filterToday(tasklist.items.where((i) => i.complete == true).toList());
+        if(completed.isEmpty){
+          return Center(child: Text("You have not completed anything today"));
+        }
+        return ListView.builder(
+          itemCount: completed.length,
+          itemBuilder: (context, index){
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
+              child: Card(
+                child: ListTile(
+                  title: Text(completed[index].name),
+                  subtitle: Text('Due next: ${findNextDue(completed[index])}'),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/task',
+                      arguments: completed[index]
+                    );
+                  },
+                  trailing: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        completed[index].taskuncomplete();
+                      });
+                    },
+                    icon: Icon(Icons.check_box)
+                  )
+                ),
+              ),
+            );
+          }
+        );
+      }
+    );
+  }
 
+  Consumer<Tasks> unavailableTaskList(){
+    return Consumer<Tasks>(
+      builder: (context, tasklist, child){
+        List<Task> completed = filterOutToday(tasklist.items.toList());
+        if(completed.isEmpty){
+          return Center(child: Text("Everything is available"));
+        }
+        return ListView.builder(
+          itemCount: completed.length,
+          itemBuilder: (context, index){
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
+              child: Card(
+                child: ListTile(
+                  title: Text(completed[index].name),
+                  subtitle: Text('Due next: ${findNextDue(completed[index]).split(' ')[0]} at 12:01 AM'),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/task',
+                      arguments: completed[index]
+                    );
+                  },
+                ),
+              ),
+            );
+          }
+        );
+      }
+    );
+  }
+
+  List<Task> filterToday(List<Task> tasks){
+    List<Task> available = [];
+    DateTime now = DateTime.now();
+    for(Task task in tasks){
+      double timediff = timeDiff(task);
+      // Finds Tasks that are available for the current day
+      if(((task.frequency == 'Daily' || task.completedays.contains(now.weekday)) && timediff > 0) || (task.complete == true && timediff <= 0)){
+        available.add(task);
+        continue;
+      }
+    }
+    return available;
+  }
+
+  List<Task> filterOutToday(List<Task> tasks){
+    List<Task> unavailable = [];
+    DateTime now = DateTime.now();
+    for(Task task in tasks){
+      double timediff = timeDiff(task);
+      // Finds the tasks that would not be available after their time until the day they are available
+      if((task.frequency == 'Daily' || task.completedays.contains(now.weekday)) && timediff <= 0 && task.complete == false){
+        unavailable.add(task);
+      }
+    }
+    return unavailable;
+  }
 
   String findNextDue(Task task){
     switch(task.frequency){
@@ -173,44 +242,62 @@ class _TaskListPageState extends State<TaskListPage> {
   }
   
   String dailyFreq(Task task){
-    var (timediff, nextdue) = timeDiff(task);
-    if(timediff == 0){
-      return "Tomorrow at ${task.completetimes[0].format(context)}";
-    }
-    else{
+    DateTime now = DateTime.now();
+    var(double timediff, TimeOfDay? nextdue) = nextDue(task);
+    if((task.completedays.contains(now.weekday) || timediff > 0) && (task.complete == false && task.fail == false)){
       return "Today at ${nextdue!.format(context)}";
     }
+    return "Tomorrow at ${task.completetimes[0].format(context)}";
+
   }
 
   String weekilyFreq(Task task){
     const Map<int, String> weekdays = {1:'Monday', 2:'Tuesday', 3:'Wednesday', 4:'Thursday', 5:'Friday', 6:'Saturday', 7:'Sunday'};
-    var(double timediff, TimeOfDay? nextdue) = timeDiff(task);
+    var(double timediff, TimeOfDay? nextdue) = nextDue(task);
     DateTime now = DateTime.now();
-    if(timediff == 0){
-      task.completedays.sort(); //THIS IS IMPORTANT: this sorts the numbers before the loop so that it will pull the first day that is greater tomorrow so if it exists
-      for(int day in task.completedays){
-        if(day > now.add(const Duration(days: 1)).weekday){
-          return "${weekdays[day]} at ${task.completetimes[0].format(context)}";
-        }
-        else if(day == now.add(const Duration(days: 1)).weekday){
-          return "Tomorrow at ${task.completetimes[0].format(context)}";
-        }
-      }
-      return "${weekdays[task.completedays[0]]} at ${task.completetimes[0].format(context)}";
-      
+    if(task.completedays.contains(now.weekday) && timediff > 0){
+      return "Today at ${nextdue!.format(context)}";
     }
-    return "Today at ${nextdue!.format(context)}";
+    task.completedays.sort(); //THIS IS IMPORTANT: this sorts the numbers before the loop so that it will pull the first day that is greater tomorrow so if it exists
+    for(int day in task.completedays){
+      if(day > now.add(const Duration(days: 1)).weekday){
+        return "${weekdays[day]} at ${task.completetimes[0].format(context)}";
+      }
+      else if(day == now.add(const Duration(days: 1)).weekday){
+        return "Tomorrow at ${task.completetimes[0].format(context)}";
+      }
+    }
+    return "${weekdays[task.completedays[0]]} at ${task.completetimes[0].format(context)}";
+      
+    
   }
 
-  (double, TimeOfDay?) timeDiff(Task task){
-    TimeOfDay? nextdue;
-    TimeOfDay nowTime = TimeOfDay.now();
-    double doublenowtime = nowTime.hour.toDouble() + (nowTime.minute.toDouble() / 60);
+  double timeDiff(Task task){
+    TimeOfDay nowtime = TimeOfDay.now();
+    double doublenowtime = nowtime.hour.toDouble() + (nowtime.minute.toDouble() / 60);
     double timediff = 0;
     // need get the next day also for daily and weekly currently
     for(TimeOfDay timecheck in task.completetimes){
       double doubletimecheck = timecheck.hour.toDouble() + (timecheck.minute.toDouble() / 60);
-      if(doublenowtime < doubletimecheck){
+      if(doublenowtime < doubletimecheck || (timediff == 0)){
+        double checkdiff = doubletimecheck - doublenowtime;
+        if((checkdiff < timediff) || (timediff == 0)){
+          timediff = checkdiff;
+        }
+      }
+    }
+    return timediff;
+  }
+
+  (double, TimeOfDay?) nextDue(Task task){
+    TimeOfDay? nextdue;
+    TimeOfDay nowtime = TimeOfDay.now();
+    double doublenowtime = nowtime.hour.toDouble() + (nowtime.minute.toDouble() / 60);
+    double timediff = 0;
+    // need get the next day also for daily and weekly currently
+    for(TimeOfDay timecheck in task.completetimes){
+      double doubletimecheck = timecheck.hour.toDouble() + (timecheck.minute.toDouble() / 60);
+      if(doublenowtime < doubletimecheck || (timediff == 0)){
         double checkdiff = doubletimecheck - doublenowtime;
         if((checkdiff < timediff) || (timediff == 0)){
           timediff = checkdiff;
@@ -218,7 +305,7 @@ class _TaskListPageState extends State<TaskListPage> {
         }
       }
     }
-    return(timediff,nextdue);
+    return (timediff, nextdue);
   }
 
   Dialog addTaskDialog(){
