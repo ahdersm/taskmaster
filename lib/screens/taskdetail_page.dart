@@ -140,17 +140,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: task.completedays.length,
                 padding: const EdgeInsets.all(5.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 4),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, crossAxisSpacing: 4, childAspectRatio: 1.75),
                 itemBuilder: (_, int index) {
-                  return Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(color: Colors.blueAccent),
-                    ),
-                    child: GridTile(
-                      child: Text(weekdays[task.completedays[index]]!),
+                  return SizedBox(
+                    child: Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blueAccent),
+                      ),
+                      child: GridTile(
+                        child: Text(weekdays[task.completedays[index]]!),
+                      ),
                     ),
                   );
                 }
