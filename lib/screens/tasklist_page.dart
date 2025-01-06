@@ -34,6 +34,8 @@ class _TaskListPageState extends State<TaskListPage> {
   int currentList = 0;
   int _selectedIndex = 0;
 
+  Color cardcolor = Colors.teal;
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -48,6 +50,7 @@ class _TaskListPageState extends State<TaskListPage> {
       unavailableTaskList()
     ];
     return Scaffold(
+      backgroundColor: CommanMethods.backgroundcolor,
       appBar: CommanMethods.mainAppBar('Tasks'),
       drawer: CommanMethods.mainDrawer(context),
       floatingActionButton: FloatingActionButton(
@@ -63,8 +66,9 @@ class _TaskListPageState extends State<TaskListPage> {
         }
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: CommanMethods.barcolor,
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
+        selectedItemColor: CommanMethods.selectorcolor,
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -84,7 +88,10 @@ class _TaskListPageState extends State<TaskListPage> {
           ),
         ]
       ),
-      body: taskListOptions.elementAt(_selectedIndex)
+      body: Container(
+        padding: EdgeInsets.fromLTRB(0, 5, 0, 0,),
+        child: taskListOptions.elementAt(_selectedIndex)
+      )
     );
   }
 
@@ -143,6 +150,7 @@ class _TaskListPageState extends State<TaskListPage> {
               padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
               child: Card(
                 child: ListTile(
+                  tileColor: Colors.tealAccent,
                   title: Text(completed[index].name),
                   subtitle: Text('Due next: ${findNextDue(completed[index])}'),
                   onTap: () {
@@ -182,6 +190,7 @@ class _TaskListPageState extends State<TaskListPage> {
             return Padding(
               padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
               child: Card(
+                color: CommanMethods.tilecolor,
                 child: ListTile(
                   title: Text(completed[index].name),
                   subtitle: Text('Due next: ${findNextDue(completed[index]).split(' ')[0]} at 12:01 AM'),
@@ -221,7 +230,7 @@ class _TaskListPageState extends State<TaskListPage> {
     for(Task task in tasks){
       double timediff = timeDiff(task);
       // Finds the tasks that would not be available after their time until the day they are available
-      if((task.frequency == 'Daily' || (!task.completedays.contains(now.weekday) && task.completedays.isNotEmpty)) && timediff <= 0 && task.complete == false){
+      if((task.frequency == 'Daily' || task.completedays.isNotEmpty) && timediff <= 0 && task.complete == false){
         unavailable.add(task);
       }
     }
