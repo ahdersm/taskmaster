@@ -2,7 +2,15 @@ import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 
+const String tableName = "tasks";
+
+const String idField = '_id';
+const String NameField = '_id';
+
 class Task extends ChangeNotifier{
+  
+
+  int? id;
   String name = '';
   String description = '';
   bool complete = false; //Weither or not the task was completed that day
