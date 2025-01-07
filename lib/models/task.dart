@@ -1,11 +1,21 @@
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 
 const String tableName = "tasks";
 
 const String idField = '_id';
-const String NameField = '_id';
+const String nameField = 'name';
+const String completeField = 'complete';
+const String failField = 'fail';
+const String freqField = 'frequency';
+const String completedaysField = 'completedays';
+const String completetimesField = 'completetimes';
+const String datetimecompletedField = 'datetimecompleted';
+const String completesField = 'completes';
+const String failsField = 'fails';
+const String pointsField = 'points';
 
 class Task extends ChangeNotifier{
   
@@ -26,6 +36,22 @@ class Task extends ChangeNotifier{
   Task(
     this.name,
   ); 
+
+  String databaseCreate(){
+    return '''create table $tableName (
+    $idField integer primary key autoincrement,
+    $nameField text not null,
+    $completeField integer not null,
+    $failField integer not null,
+    $freqField text not null,
+    $completedaysField text null,
+    $completetimesField text not null
+    $datetimecompletedField text
+    $completesField integer
+    $failsField integer
+    $pointsField integer
+    )''';
+  }
 
   void taskcomplete(){
     this.complete = true;
