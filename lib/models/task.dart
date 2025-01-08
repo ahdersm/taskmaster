@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
@@ -33,12 +34,8 @@ class Task extends ChangeNotifier{
   int fails = 0; //Count of how many times this task was not completed
   int points = 0; //how many points is this task worth
 
-  Task(
-    this.name,
-  ); 
-
-  String databaseCreate(){
-    return '''create table $tableName (
+  Future<void> databaseCreate(Database database) async {
+    await database.execute('''create table $tableName (
     $idField integer primary key autoincrement,
     $nameField text not null,
     $completeField integer not null,
@@ -50,7 +47,7 @@ class Task extends ChangeNotifier{
     $completesField integer
     $failsField integer
     $pointsField integer
-    )''';
+    )''');
   }
 
   void taskcomplete(){
@@ -69,7 +66,8 @@ class Task extends ChangeNotifier{
     this.fails += 1;
   }
 
-  void newtask({required String frequency, String? description, List<int>? completedays, List<TimeOfDay>? completetimes, required int points}){
+  void newtask({required String name, required String frequency, String? description, List<int>? completedays, List<TimeOfDay>? completetimes, required int points}){
+    this.name = name;
     this.frequency = frequency;
     this.points = points;
     if(description != null){

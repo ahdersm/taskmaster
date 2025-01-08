@@ -596,8 +596,9 @@ class _TaskListPageState extends State<TaskListPage> {
         if (_formKey.currentState!.validate()){
           _formKey.currentState!.save();
           
-          Task newtask = Task(_newname);
+          Task newtask = Task();
           newtask.newtask(
+            name: _newname,
             frequency: _newfreq,
             description: _newdescription,
             completetimes: _newtimes,
