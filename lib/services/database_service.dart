@@ -15,7 +15,7 @@ class DatabaseService{
     if(_database != null){
       return _database!;
     }
-    _database = await _initialize();
+    _database = await getDatabase();
     return _database!;
   }
 

@@ -3,11 +3,13 @@ import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:taskmaster/services/database_service.dart';
 
 const String tableName = "tasks";
 
-const String idField = '_id';
+const String idField = 'id';
 const String nameField = 'name';
+const String descriptionfield = 'description';
 const String completeField = 'complete';
 const String failField = 'fail';
 const String freqField = 'frequency';
@@ -34,20 +36,65 @@ class Task extends ChangeNotifier{
   int fails = 0; //Count of how many times this task was not completed
   int points = 0; //how many points is this task worth
 
+  Map<String, dynamic> toMap(){
+    String days = '';
+    String times = '';
+    String datetimes = '';
+    for(int day in completedays){
+      if(days != ''){
+        days += ';';
+      }
+      days += day.toString();
+    }
+    for(TimeOfDay time in completetimes){
+      if(times != ''){
+        times += ';';
+      }
+      times += time.hour.toString() + ':' + time.minute.toString() + "_" + time.period.toString();
+    }
+    for(DateTime datetime in datetimecompleted){
+      if(datetimes != ''){
+        datetimes += ';';
+      }
+      datetimes += datetime.millisecondsSinceEpoch.toString();
+    }
+
+    var map = <String, dynamic>{
+      nameField: name,
+      descriptionfield: description,
+      completeField: complete == true ? 1:0,
+      failField: fail == true ? 1:0,
+      freqField: frequency,
+      completedaysField: days,
+      completetimesField: times,
+      datetimecompletedField: datetimes,
+
+
+    };
+    return {'id': id, 'name': name, 'description': description};
+  }
+
   Future<void> databaseCreate(Database database) async {
     await database.execute('''create table $tableName (
     $idField integer primary key autoincrement,
     $nameField text not null,
+    $description text not null,
     $completeField integer not null,
     $failField integer not null,
     $freqField text not null,
-    $completedaysField text null,
-    $completetimesField text not null
-    $datetimecompletedField text
-    $completesField integer
-    $failsField integer
+    $completedaysField text,
+    $completetimesField text not null,
+    $datetimecompletedField text,
+    $completesField integer,
+    $failsField integer,
     $pointsField integer
     )''');
+  }
+
+  createTask(Task task) async{
+    final db = await DatabaseService.instance.database;
+    var saved = await db.insert(tableName, toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    
   }
 
   void taskcomplete(){
