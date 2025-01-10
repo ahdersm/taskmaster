@@ -50,7 +50,7 @@ class Task extends ChangeNotifier{
       if(times != ''){
         times += ';';
       }
-      times += time.hour.toString() + ':' + time.minute.toString() + "_" + time.period.toString();
+      times += time.hour.toString() + ':' + time.minute.toString();
     }
     for(DateTime datetime in datetimecompleted){
       if(datetimes != ''){
@@ -59,7 +59,7 @@ class Task extends ChangeNotifier{
       datetimes += datetime.millisecondsSinceEpoch.toString();
     }
 
-    var map = <String, dynamic>{
+    Map<String, dynamic> map = <String, dynamic>{
       nameField: name,
       descriptionfield: description,
       completeField: complete == true ? 1:0,
@@ -68,10 +68,40 @@ class Task extends ChangeNotifier{
       completedaysField: days,
       completetimesField: times,
       datetimecompletedField: datetimes,
-
-
+      completesField: completes,
+      failsField: fails,
+      pointsField: points,
     };
-    return {'id': id, 'name': name, 'description': description};
+    return map;
+  }
+
+  void fromMap(Map<String, Object?>map){
+    String days = map[completedaysField] as String;
+    List<String> dayssplit = days.split(";");
+    for(String split in dayssplit){
+      completedays.add(int.parse(split));
+    }
+    String times = map[completetimesField] as String;
+    List<String> timessplit = times.split(";");
+    for(String time in timessplit){
+      List<String> timesplit = time.split(":");
+      completetimes.add(TimeOfDay(hour: int.parse(timesplit[0]), minute: int.parse(timesplit[1])));
+    }
+    String completesstring = map[datetimecompletedField] as String;
+    List<String> listcompletes = completesstring.split(";");
+    for(String complete in listcompletes){
+      datetimecompleted.add(DateTime.fromMillisecondsSinceEpoch(int.parse(complete)));
+    }
+
+    id = map[idField] as int?;
+    name = map[nameField] as String;
+    description = map[descriptionfield] as String;
+    complete = map[completeField] == 1 ? true:false;
+    fail = map[failField] == 1 ? true:false;
+    frequency = map[freqField] as String;
+    completes = map[completesField] as int;
+    fails = map[failsField] as int;
+    points = map[pointsField] as int;
   }
 
   Future<void> databaseCreate(Database database) async {
