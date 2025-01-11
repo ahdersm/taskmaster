@@ -59,7 +59,7 @@ class Task extends ChangeNotifier{
       datetimes += datetime.millisecondsSinceEpoch.toString();
     }
 
-    Map<String, dynamic> map = <String, dynamic>{
+    Map<String, Object?> map = <String, dynamic>{
       nameField: name,
       descriptionfield: description,
       completeField: complete == true ? 1:0,
@@ -72,14 +72,21 @@ class Task extends ChangeNotifier{
       failsField: fails,
       pointsField: points,
     };
+    if(id != null){
+      map[idField] = id;
+    }
     return map;
   }
 
-  void fromMap(Map<String, Object?>map){
+  Task();
+
+  Task.fromMap(Map<dynamic, dynamic>map){
     String days = map[completedaysField] as String;
-    List<String> dayssplit = days.split(";");
-    for(String split in dayssplit){
-      completedays.add(int.parse(split));
+    if(days.isNotEmpty){
+      List<String> dayssplit = days.split(";");
+      for(String split in dayssplit){
+        completedays.add(int.parse(split));
+      }
     }
     String times = map[completetimesField] as String;
     List<String> timessplit = times.split(";");
@@ -87,10 +94,12 @@ class Task extends ChangeNotifier{
       List<String> timesplit = time.split(":");
       completetimes.add(TimeOfDay(hour: int.parse(timesplit[0]), minute: int.parse(timesplit[1])));
     }
-    String completesstring = map[datetimecompletedField] as String;
-    List<String> listcompletes = completesstring.split(";");
-    for(String complete in listcompletes){
-      datetimecompleted.add(DateTime.fromMillisecondsSinceEpoch(int.parse(complete)));
+    if(map[datetimecompletedField] != null && map[datetimecompletedField] != ""){
+      String completesstring = map[datetimecompletedField] as String;
+      List<String> listcompletes = completesstring.split(";");
+      for(String complete in listcompletes){
+        datetimecompleted.add(DateTime.fromMillisecondsSinceEpoch(int.parse(complete)));
+      }
     }
 
     id = map[idField] as int?;
@@ -102,29 +111,6 @@ class Task extends ChangeNotifier{
     completes = map[completesField] as int;
     fails = map[failsField] as int;
     points = map[pointsField] as int;
-  }
-
-  Future<void> databaseCreate(Database database) async {
-    await database.execute('''create table $tableName (
-    $idField integer primary key autoincrement,
-    $nameField text not null,
-    $description text not null,
-    $completeField integer not null,
-    $failField integer not null,
-    $freqField text not null,
-    $completedaysField text,
-    $completetimesField text not null,
-    $datetimecompletedField text,
-    $completesField integer,
-    $failsField integer,
-    $pointsField integer
-    )''');
-  }
-
-  createTask(Task task) async{
-    final db = await DatabaseService.instance.database;
-    var saved = await db.insert(tableName, toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
-    
   }
 
   void taskcomplete(){
@@ -156,6 +142,100 @@ class Task extends ChangeNotifier{
     if(completetimes != null){
       this.completetimes = completetimes;
     }
+  }
+}
+
+class TaskProvider extends ChangeNotifier{
+  Future<void> databaseCreate(Database database) async {
+    await database.execute('''create table $tableName (
+    $idField integer primary key autoincrement,
+    $nameField text not null,
+    $descriptionfield text not null,
+    $completeField integer not null,
+    $failField integer not null,
+    $freqField text not null,
+    $completedaysField text,
+    $completetimesField text not null,
+    $datetimecompletedField text,
+    $completesField integer,
+    $failsField integer,
+    $pointsField integer
+    )''');
+  }
+
+  Future<Task>createTask(Task task) async{
+    final db = await DatabaseService.instance.database;
+    task.id = await db.insert(tableName, task.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    return task;
+  }
+
+  Future<Task?> getTask(int id) async {
+    final db = await DatabaseService.instance.database;
+    List<Map> map = await db.query(tableName, 
+      columns: [
+        idField,
+        nameField,
+        descriptionfield,
+        completeField,
+        failField,
+        freqField,
+        completedaysField,
+        completetimesField,
+        datetimecompletedField,
+        completesField,
+        failsField,
+        pointsField,
+        ],
+      where: '$idField = ?',
+      whereArgs: [id]
+    );
+    if(map.isNotEmpty){
+      return Task.fromMap(map.first);
+    }
+    return null;
+  }
+
+  Future<List<Task>?> getAllTasks() async{
+    final db = await DatabaseService.instance.database;
+    List<Task> tasks = [];
+    List<Map> maps = await db.query(tableName,
+      columns: [
+        idField,
+        nameField,
+        descriptionfield,
+        completeField,
+        failField,
+        freqField,
+        completedaysField,
+        completetimesField,
+        datetimecompletedField,
+        completesField,
+        failsField,
+        pointsField,
+        ],);
+    if(maps.isEmpty){
+      return null;
+    }
+    for(Map map in maps){
+      tasks.add(Task.fromMap(map));
+    }
+    return tasks;
+  }
+
+  Future<int> deleteTask(int id) async {
+    final db = await DatabaseService.instance.database;
+    return await db.delete(tableName,
+      where: '$idField = ?',
+      whereArgs: [id]
+    );
+  }
+
+  Future<int> updateTask(Task task) async {
+    final db = await DatabaseService.instance.database;
+    return await db.update(tableName, task.toMap(),
+      where: '$idField = ?',
+      whereArgs: [task.id]
+    );
   }
 }
 

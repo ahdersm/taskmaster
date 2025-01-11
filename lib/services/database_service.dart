@@ -7,6 +7,7 @@ import 'package:taskmaster/models/task.dart';
 
 class DatabaseService{
   Database? _database;
+  String dbFile = "master_db.db";
   static final DatabaseService instance = DatabaseService._constructor();
 
   DatabaseService._constructor();
@@ -21,10 +22,10 @@ class DatabaseService{
 
   Future<Database> getDatabase() async{
     final databaseDirPath = await getDatabasesPath();
-    final databasePath = join(databaseDirPath, "master_db.db");
+    final databasePath = join(databaseDirPath, dbFile);
     final database = await openDatabase(
       databasePath,
-      version: 1,
+      version: 2,
       onCreate: create,
       singleInstance: true,
     );
@@ -32,6 +33,11 @@ class DatabaseService{
   }
 
   Future<void> create(Database database, int version) async {
-    await Task().databaseCreate(database);
+    await TaskProvider().databaseCreate(database);
+  }
+
+  static void delete() async{
+    final databaseDirPath = await getDatabasesPath();
+    databaseFactory.deleteDatabase(join(databaseDirPath, "master_db.db"));
   }
 }

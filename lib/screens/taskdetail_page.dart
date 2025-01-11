@@ -11,6 +11,7 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
+  final TaskProvider _tProvider = TaskProvider();
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as Task;
@@ -55,7 +56,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   return TextButton(
                     onPressed:(){
                       Navigator.of(context).pop();
-                      tasklist.removeTask(args);
+                      _tProvider.deleteTask(args.id!);
                     },
                     child: Text(
                       "Delete Task",

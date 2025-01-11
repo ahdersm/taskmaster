@@ -16,6 +16,15 @@ class TaskListPage extends StatefulWidget {
 }
 
 class _TaskListPageState extends State<TaskListPage> {
+  late Future<List<Task>?> allTasks;
+  final TaskProvider _tProvider = TaskProvider();
+
+  @override
+  void initState(){
+    super.initState();
+    allTasks = _tProvider.getAllTasks();
+  }
+
   String _newname = '';
   String _newdescription = '';
   String _newfreq = '';
@@ -39,6 +48,7 @@ class _TaskListPageState extends State<TaskListPage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      allTasks = _tProvider.getAllTasks();
     });
   }
 
@@ -95,117 +105,166 @@ class _TaskListPageState extends State<TaskListPage> {
     );
   }
 
-  Consumer<Tasks> uncompletedTaskList(){
-    return Consumer<Tasks>(
-      builder: (context, tasklist, child){
-        List<Task> uncompleted = filterToday(tasklist.items.where((i) => i.complete == false).toList());
-
-        if(uncompleted.isEmpty){
-          return Center(child: Text("You have completed all tasks today!"));
+  FutureBuilder uncompletedTaskList(){
+    return FutureBuilder<List<Task>?>(
+      future: allTasks, 
+      builder: (context, snapshot){
+        switch(snapshot.connectionState){
+          case ConnectionState.waiting:
+            return Center(child: CircularProgressIndicator());
+          case ConnectionState.done:
+          default:
+            if(snapshot.hasError){
+              return Text("${snapshot.error}");
+            }
+            else if(snapshot.hasData){
+              List<Task> uncompleted = filterToday(snapshot.data!.where((i) => i.complete == false).toList());
+              if(uncompleted.isEmpty){
+                return Center(child: Text("You have completed all tasks today!"));
+              }
+              return ListView.builder(
+                itemCount: uncompleted.length,
+                itemBuilder: (context, index){
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
+                    child: Card(
+                      child: ListTile(
+                        title: Text(uncompleted[index].name),
+                        subtitle: Text('Due next: ${findNextDue(uncompleted[index])}'),
+                        onTap: () async {
+                          await Navigator.pushNamed(
+                            context,
+                            '/task',
+                            arguments: uncompleted[index]
+                          );
+                          setState((){
+                            allTasks = _tProvider.getAllTasks();
+                          });
+                        },
+                        trailing: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              uncompleted[index].taskcomplete();
+                              _tProvider.updateTask(uncompleted[index]);
+                            });
+                          },
+                          icon: Icon(Icons.check_box_outline_blank)
+                        )
+                      ),
+                    ),
+                  );
+                }
+              );
+            }
+            else{
+              return Center(child: Text("You have no tasks make one!"));
+            }
         }
-        return ListView.builder(
-          itemCount: uncompleted.length,
-          itemBuilder: (context, index){
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
-              child: Card(
-                child: ListTile(
-                  title: Text(uncompleted[index].name),
-                  subtitle: Text('Due next: ${findNextDue(uncompleted[index])}'),
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/task',
-                      arguments: uncompleted[index]
-                    );
-                  },
-                  trailing: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        uncompleted[index].taskcomplete();
-                      });
-                    },
-                    icon: Icon(Icons.check_box_outline_blank)
-                  )
-                ),
-              ),
-            );
-          }
-        );
       }
     );
   }
 
-  Consumer<Tasks> completedTaskList(){
-    return Consumer<Tasks>(
-      builder: (context, tasklist, child){
-        List<Task> completed = filterToday(tasklist.items.where((i) => i.complete == true).toList());
-        if(completed.isEmpty){
-          return Center(child: Text("You have not completed anything today"));
+  FutureBuilder completedTaskList(){
+    return FutureBuilder<List<Task>?>(
+      future: allTasks, 
+      builder: (context, snapshot){
+        switch(snapshot.connectionState){
+          case ConnectionState.waiting:
+            return Center(child: CircularProgressIndicator());
+          case ConnectionState.done:
+          default:
+            if(snapshot.hasError){
+              return Text("${snapshot.error}");
+            }
+            else if(snapshot.hasData){
+              List<Task> completed = filterToday(snapshot.data!.where((i) => i.complete == true).toList());
+              if(completed.isEmpty){
+                return Center(child: Text("You have not completed anything today"));
+              }
+              return ListView.builder(
+                itemCount: completed.length,
+                itemBuilder: (context, index){
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
+                    child: Card(
+                      child: ListTile(
+                        tileColor: Colors.tealAccent,
+                        title: Text(completed[index].name),
+                        subtitle: Text('Due next: ${findNextDue(completed[index])}'),
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/task',
+                            arguments: completed[index]
+                          );
+                        },
+                        trailing: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              completed[index].taskuncomplete();
+                              _tProvider.updateTask(completed[index]);
+                            });
+                          },
+                          icon: Icon(Icons.check_box)
+                        )
+                      ),
+                    ),
+                  );
+                }
+              );
+            }
+            else{
+              return Center(child: Text("You have no tasks make one!"));
+            }
         }
-        return ListView.builder(
-          itemCount: completed.length,
-          itemBuilder: (context, index){
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
-              child: Card(
-                child: ListTile(
-                  tileColor: Colors.tealAccent,
-                  title: Text(completed[index].name),
-                  subtitle: Text('Due next: ${findNextDue(completed[index])}'),
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/task',
-                      arguments: completed[index]
-                    );
-                  },
-                  trailing: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        completed[index].taskuncomplete();
-                      });
-                    },
-                    icon: Icon(Icons.check_box)
-                  )
-                ),
-              ),
-            );
-          }
-        );
       }
     );
   }
 
-  Consumer<Tasks> unavailableTaskList(){
-    return Consumer<Tasks>(
-      builder: (context, tasklist, child){
-        List<Task> completed = filterOutToday(tasklist.items.toList());
-        if(completed.isEmpty){
-          return Center(child: Text("Everything is available"));
+  FutureBuilder unavailableTaskList(){
+    return FutureBuilder<List<Task>?>(
+      future: allTasks, 
+      builder: (context, snapshot){
+        switch(snapshot.connectionState){
+          case ConnectionState.waiting:
+            return Center(child: CircularProgressIndicator());
+          case ConnectionState.done:
+          default:
+            if(snapshot.hasError){
+              return Text("${snapshot.error}");
+            }
+            else if(snapshot.hasData){
+              List<Task> unavailable = filterOutToday(snapshot.data!.toList());
+              if(unavailable.isEmpty){
+                return Center(child: Text("Everything is available"));
+              }
+              return ListView.builder(
+                itemCount: unavailable.length,
+                itemBuilder: (context, index){
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
+                    child: Card(
+                      color: CommanMethods.tilecolor,
+                      child: ListTile(
+                        title: Text(unavailable[index].name),
+                        subtitle: Text('Due next: ${findNextDue(unavailable[index]).split(' ')[0]} at 12:01 AM'),
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/task',
+                            arguments: unavailable[index]
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                }
+              );
+            }
+            else{
+              return Center(child: Text("You have no tasks make one!"));
+            }
         }
-        return ListView.builder(
-          itemCount: completed.length,
-          itemBuilder: (context, index){
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(10, 1, 10, 1),
-              child: Card(
-                color: CommanMethods.tilecolor,
-                child: ListTile(
-                  title: Text(completed[index].name),
-                  subtitle: Text('Due next: ${findNextDue(completed[index]).split(' ')[0]} at 12:01 AM'),
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/task',
-                      arguments: completed[index]
-                    );
-                  },
-                ),
-              ),
-            );
-          }
-        );
       }
     );
   }
@@ -592,29 +651,32 @@ class _TaskListPageState extends State<TaskListPage> {
         textStyle: Theme.of(context).textTheme.labelLarge, 
       ),
       onPressed: (){
-        getLogger('TaskListPage', "addTaskDialog").t("New Task Created");
-        if (_formKey.currentState!.validate()){
-          _formKey.currentState!.save();
-          
-          Task newtask = Task();
-          newtask.newtask(
-            name: _newname,
-            frequency: _newfreq,
-            description: _newdescription,
-            completetimes: _newtimes,
-            completedays: convertToDayInt(_selectedDays),
-            points: _points,
-          );
-          tasklist.addTask(newtask);
-          Navigator.of(context).pop();
-          _newname = '';
-          _newfreq = '';
-          _newdescription = '';
-          _newtimes = [];
-          _selectedFreq = 'Daily';
-          _selectedDays = [];
-          _points = 0;
-        }
+        setState(() {
+          getLogger('TaskListPage', "addTaskDialog").t("New Task Created");
+          if (_formKey.currentState!.validate()){
+            _formKey.currentState!.save();
+            
+            Task newtask = Task();
+            newtask.newtask(
+              name: _newname,
+              frequency: _newfreq,
+              description: _newdescription,
+              completetimes: _newtimes,
+              completedays: convertToDayInt(_selectedDays),
+              points: _points,
+            );
+            _tProvider.createTask(newtask);
+            allTasks = _tProvider.getAllTasks();
+            Navigator.of(context).pop();
+            _newname = '';
+            _newfreq = '';
+            _newdescription = '';
+            _newtimes = [];
+            _selectedFreq = 'Daily';
+            _selectedDays = [];
+            _points = 0;
+          }
+        });
       },
       child: const Text('Create'),
     );

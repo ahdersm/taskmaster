@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
 import 'package:taskmaster/screens/home_page.dart';
 import 'package:taskmaster/screens/taskdetail_page.dart';
@@ -10,7 +11,9 @@ void main() {
   runApp(
     MultiProvider(
       providers:[
+        ChangeNotifierProvider(create: (_) => Task()),
         ChangeNotifierProvider(create: (_) => Tasks()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
       ],
       child: MyApp(),
     )
