@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
+
+final _formKey = GlobalKey<FormState>();
 
 class TaskDetailPage extends StatefulWidget {
   const TaskDetailPage({super.key});
@@ -11,13 +15,15 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
+  String _selectedFreq = '';
+  Task _args = Task();
   final TaskProvider _tProvider = TaskProvider();
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Task;
+    _args = ModalRoute.of(context)!.settings.arguments as Task;
     return Scaffold(
       backgroundColor: CommanMethods.backgroundcolor,
-      appBar: CommanMethods.mainAppBar('Task Details: ${args.name}'),
+      appBar: CommanMethods.mainAppBar('Task Details: ${_args.name}'),
       bottomNavigationBar: Container(
         padding: EdgeInsets.fromLTRB(0, 0, 0, 25),
         color: Colors.blueGrey,
@@ -35,6 +41,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 builder: (context, tasklist, child){
                   return TextButton(
                     onPressed:(){
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context){
+                          return editTaskDialog();
+                        }
+                      );
                     },
                     child: Text(
                       "Edit Task",
@@ -56,7 +68,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   return TextButton(
                     onPressed:(){
                       Navigator.of(context).pop();
-                      _tProvider.deleteTask(args.id!);
+                      _tProvider.deleteTask(_args.id!);
                     },
                     child: Text(
                       "Delete Task",
@@ -74,26 +86,35 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           padding: const EdgeInsets.all(10.0),
           child: ListView(
             children: [
-              descriptionbox(context, args),
-              frequancybox(args),
-              weeklyDaysgrid(args),
-              completetimes(args),
-              Text("Complete?: ${args.complete}"),
-              Text("Task Points: ${args.points}"),
-              Text("Completes: ${args.completes}"),
-              Text("Fails: ${args.fails}"),
+              descriptionbox(context, _args),
+              frequancybox(_args),
+              weeklyDaysgrid(_args),
+              completetimes(_args),
+              Text("Complete?: ${_args.complete}"),
+              Text("Task Points: ${_args.points}"),
+              Text("Completes: ${_args.completes}"),
+              Text("Fails: ${_args.fails}"),
               
               Text("Completed Times"),
               ListView.builder(
                 shrinkWrap: true,
-                itemCount: args.datetimecompleted.length,
+                itemCount: _args.datetimecompleted.length,
                 itemBuilder: (context, index){
                   return ListTile(
-                    title: Center(child: Text(args.datetimecompleted[index].toString())),
+                    title: Center(child: Text(_args.datetimecompleted[index].toString())),
                   );
                 }
               ),
+              TableCalendar(
+                firstDay: DateTime.now().add(const Duration(days: -3650)),
+                lastDay: DateTime.now().add(const Duration(days: 3650)),
+                focusedDay: DateTime.now(),
+                eventLoader: (day) {
+                  return getCompletesForDay(day);
+                },
+              ),
             ],
+            
           ),
         ),
       ),
@@ -235,5 +256,331 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
       child: input
     );
+  }
+
+
+
+  Dialog editTaskDialog(){
+    const Map<int, String> weekdays = {1:'Monday',2:'Tuesday',3:'Wednesday',4:'Thursday',5:'Friday',6:'Saturday',7:'Sunday'};
+    _selectedFreq = _args.frequency;
+    List<TimeOfDay> newtimes = List.from(_args.completetimes);
+    List<String> selectedDays = [];
+    if(newtimes.isNotEmpty){
+      for(int day in _args.completedays){
+        selectedDays.add(weekdays[day]!);
+      }
+    }
+    return Dialog.fullscreen(
+      child: Form(
+        key: _formKey,
+        child: StatefulBuilder(
+          builder: (context, setStateForDialog) {
+            return Column(
+              children: [
+                Text('Add Task'),
+                taskName(),
+                taskDescription(),
+                selectFrequancy(setStateForDialog),
+                weeklyDaySelector(setStateForDialog, selectedDays),
+                Text("Selected Times"),
+                listSelectedTimes(setStateForDialog, newtimes),
+                selectTime(setStateForDialog, newtimes),
+                taskpoints(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    saveButton(selectedDays,newtimes),
+                    IconButton(
+                      onPressed: (){
+                        Navigator.of(context).pop();
+                      },
+                      icon: Icon(Icons.close)
+                    )
+                  ],
+                ),
+              ],
+            );
+          }
+        ),
+      ),
+    );
+  }
+
+  TextFormField taskName() {
+    return TextFormField(
+      initialValue: _args.name,
+      decoration: InputDecoration(
+        hintText: "Task Name",
+        hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+      ),
+      validator: (value) {
+        if(value == null || value.isEmpty){
+          return 'Enter a task name';
+        }
+        return null;
+      },
+      onSaved: (value) {
+        _args.name = value!;
+      },
+    );
+  }
+
+  TextFormField taskDescription() {
+    return TextFormField(
+      initialValue: _args.description,
+      maxLines: null,
+      decoration: InputDecoration(
+        hintText: "Task Description",
+        hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+      ),
+      validator: (value) {
+        if(value == null || value.isEmpty){
+          return 'Enter a task name';
+        }
+        return null;
+      },
+      onSaved: (value) {
+        _args.description = value!;
+      },
+    );
+  }
+
+  DropdownButtonFormField<String> selectFrequancy(setStateForDialog) {
+    List<String> freqdropdown = [
+      'Daily',
+      //'Every X Days',
+      'Weekly',
+      //'Monthly',
+    ];
+    return DropdownButtonFormField(
+      value: _selectedFreq,
+      decoration: InputDecoration(
+        hintText: "Task Name",
+        hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+      ),
+      items: freqdropdown.map((f){
+        return DropdownMenuItem(
+          value: f,
+          child: Text(f),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setStateForDialog(() {
+          _selectedFreq = value!;
+          
+        });
+      },
+      onSaved: (value){
+        _args.frequency = value!;
+      },
+    );
+  }
+
+  Expanded listSelectedTimes(setStateForDialog, newtimes){
+    if(newtimes.isNotEmpty){
+      return Expanded(
+        child: ListView.builder(
+          shrinkWrap: true,
+          
+          itemCount: newtimes.length,
+          itemBuilder: (context, index){
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Card(
+                child: ListTile(
+                  title: Text(newtimes[index]!.format(context)),
+                  trailing: IconButton(
+                    onPressed: (){
+                      setStateForDialog(() {
+                        newtimes.remove(newtimes[index]);
+                      });
+                    },
+                    icon: Icon(Icons.close)
+                  ),
+                )
+              )
+            );
+          }
+        ),
+      );
+    }
+    return Expanded(child: Text(''));
+     
+  }
+
+  TextButton selectTime(setStateForDialog, newtimes){
+    return TextButton(
+      onPressed: () async {
+        final TimeOfDay? newtime = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.now(),
+        );
+        if(newtime != null){
+          setStateForDialog(() {
+            newtimes.add(newtime);
+            newtimes.sort();
+          });
+        }
+      },
+      child: const Text('Select Time')
+    );
+  }
+
+  Container weeklyDaySelector(setStateForDialog, List<String>selectedDays){
+    List<String> daylist = ['Monday','Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    if(_selectedFreq == "Weekly"){
+      return Container(
+        height: 85,
+        child: Column(
+          children: [
+            Text("Day Selector"),
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemExtent: MediaQuery.sizeOf(context).width / (daylist.length + .5), //this will adapt to any screen size horizontaly and the .5 is important for the side of the screen spacing
+                scrollDirection: Axis.horizontal,
+                itemCount: daylist.length,
+                padding: const EdgeInsets.all(0),
+                itemBuilder: (context, index){
+                  if(selectedDays.any((s) => s.contains(daylist[index]))){
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: SizedBox(
+                          height: 35,
+                          width: 35,
+                          child: ListTile(
+                            shape: CircleBorder(side: BorderSide()),
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                            visualDensity: VisualDensity(vertical: -4),
+                            tileColor: Colors.red,
+                            title: Text(
+                              daylist[index].substring(0,3),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 10
+                              ),
+                            ),
+                            onTap: () {
+                              setStateForDialog(() {
+                                selectedDays.remove(daylist[index]);
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  else{
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: SizedBox(
+                          height: 35,
+                          width: 35,
+                          child: ListTile(
+                            shape: CircleBorder(side: BorderSide()),
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                            visualDensity: VisualDensity(vertical: -4),
+                            title: Text(
+                              daylist[index].substring(0,3),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 10
+                              ),
+                            ),
+                            onTap: () {
+                              setStateForDialog(() {
+                                selectedDays.add(daylist[index]);
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                }
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    else{
+      return Container();
+    }
+  }
+
+  TextFormField taskpoints(){
+    return TextFormField(
+      initialValue: _args.points.toString(),
+      keyboardType: TextInputType.number,
+      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+      decoration: InputDecoration(
+        hintText: "Task Point(s)",
+        hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+      ),
+      validator: (value) {
+        if(value == null || value.isEmpty){
+          return 'Enter a task name';
+        }
+        return null;
+      },
+      onSaved: (value) {
+        _args.points = int.parse(value!);
+      },
+    );
+  }
+
+  TextButton saveButton(List<String> selectedDays,List<TimeOfDay> newtimes){
+    return TextButton(
+      style: TextButton.styleFrom(
+        textStyle: Theme.of(context).textTheme.labelLarge, 
+      ),
+      onPressed: (){
+        setState(() {
+          if (_formKey.currentState!.validate()){
+            _formKey.currentState!.save();
+            _args.completetimes = newtimes;
+            if(selectedDays.isNotEmpty){
+              _args.completedays = convertToDayInt(selectedDays);
+            }
+            if(_args.frequency == 'Daily'){
+              _args.completedays = [];
+            }
+            _tProvider.updateTask(_args);
+            Navigator.of(context).pop();
+          }
+        });
+      },
+      child: const Text('Save'),
+    );
+  }
+
+  List<int> convertToDayInt(List<String> days){
+    const Map<String, int> weekdays = {'Monday': 1,'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7};
+    List<int>? intDays = [];
+    for(String day in days){
+      int convert = weekdays[day]!;
+      intDays.add(convert);
+    }
+    intDays.sort();
+    return intDays;
+  }
+  
+  List<Event> getCompletesForDay(DateTime day) {
+    List<DateTime> events = [];
+    for(DateTime complete in _args.datetimecompleted){
+      if(complete.day == day.day && complete.month == day.month && complete.year == day.year){
+        events.add(complete);
+      }
+    }
+    return events;
   }
 }

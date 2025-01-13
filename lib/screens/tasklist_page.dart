@@ -289,7 +289,7 @@ class _TaskListPageState extends State<TaskListPage> {
     for(Task task in tasks){
       double timediff = timeDiff(task);
       // Finds the tasks that would not be available after their time until the day they are available
-      if((task.frequency == 'Daily' || task.completedays.isNotEmpty) && timediff <= 0 && task.complete == false){
+      if(((task.frequency == 'Daily' && timediff <= 0) || (task.completedays.contains(DateTime.now().weekday) && timediff <= 0) || (task.frequency != 'Daily' && !task.completedays.contains(DateTime.now().weekday))) && task.complete == false){
         unavailable.add(task);
       }
     }
