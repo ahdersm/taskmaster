@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
+import 'package:intl/intl.dart';
 
 final _formKey = GlobalKey<FormState>();
 
@@ -106,12 +108,42 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 }
               ),
               TableCalendar(
+                
                 firstDay: DateTime.now().add(const Duration(days: -3650)),
                 lastDay: DateTime.now().add(const Duration(days: 3650)),
                 focusedDay: DateTime.now(),
                 eventLoader: (day) {
                   return getCompletesForDay(day);
                 },
+                calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, day, events) {
+                    if(events.isNotEmpty){
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Icon(Icons.check_circle, color: Colors.green, size: 16,),
+                      );
+                    }
+                    // Needs to have complete day and see if it does not contain the current day and mark it as something else
+                    else if(_args.completedays.isNotEmpty && !_args.completedays.contains(day.weekday)){
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Icon(Icons.cancel_outlined, color: Colors.grey, size: 16,),
+                      );
+                    }
+                    else if(day.isAfter(DateTime.now().subtract(const Duration(days: 1))) || ((DateFormat.yMd().format(day) == DateFormat.yMd().format(DateTime.now()) && TimeOfDay.now().isBefore(_args.completetimes.last)))){
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Icon(Icons.radio_button_off, color: Colors.grey, size: 16,),
+                      );
+                    }
+                    else{
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Icon(Icons.cancel_outlined, color: Colors.red, size: 16,),
+                      );
+                    }
+                  },
+                ),
               ),
             ],
             
@@ -574,13 +606,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     return intDays;
   }
   
-  List<Event> getCompletesForDay(DateTime day) {
+  List<DateTime> getCompletesForDay(DateTime day) {
     List<DateTime> events = [];
     for(DateTime complete in _args.datetimecompleted){
       if(complete.day == day.day && complete.month == day.month && complete.year == day.year){
         events.add(complete);
       }
     }
-    return events;
+    return events; 
   }
 }
