@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/task.dart';
 
 class DatabaseService{
@@ -25,7 +26,7 @@ class DatabaseService{
     final databasePath = join(databaseDirPath, dbFile);
     final database = await openDatabase(
       databasePath,
-      version: 2,
+      version: 4,
       onCreate: create,
       singleInstance: true,
     );
@@ -34,6 +35,7 @@ class DatabaseService{
 
   Future<void> create(Database database, int version) async {
     await TaskProvider().databaseCreate(database);
+    await CommanMethodsProvider().databaseCreate(database);
   }
 
   static void delete() async{

@@ -13,8 +13,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  CommanMethods cms = CommanMethods();
   @override
   Widget build(BuildContext context) {
+    cms.checkLastClear();
     return Scaffold(
       appBar: CommanMethods.mainAppBar('Home'),
       drawer: CommanMethods.mainDrawer(context),

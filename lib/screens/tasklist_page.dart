@@ -16,6 +16,7 @@ class TaskListPage extends StatefulWidget {
 }
 
 class _TaskListPageState extends State<TaskListPage> {
+  CommanMethods cms = CommanMethods();
   late Future<List<Task>?> allTasks;
   final TaskProvider _tProvider = TaskProvider();
 
@@ -54,6 +55,7 @@ class _TaskListPageState extends State<TaskListPage> {
 
   @override
   Widget build(BuildContext context) {
+    cms.checkLastClear();
     List<Widget> taskListOptions = <Widget>[
       uncompletedTaskList(),
       completedTaskList(),
