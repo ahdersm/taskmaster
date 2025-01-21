@@ -17,9 +17,21 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
+  late final ValueNotifier<List<DateTime>> _selectedEvents;
+  DateTime? _selectedDay;
+  DateTime _focusedDay = DateTime.now();
   String _selectedFreq = '';
   Task _args = Task();
   final TaskProvider _tProvider = TaskProvider();
+
+  @override
+    void initState() {
+      super.initState();
+
+      _selectedDay = _focusedDay;
+      _selectedEvents = ValueNotifier(getCompletesForDay(_selectedDay!));
+    }
+
   @override
   Widget build(BuildContext context) {
     _args = ModalRoute.of(context)!.settings.arguments as Task;
@@ -97,23 +109,26 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               Text("Completes: ${_args.completes}"),
               Text("Fails: ${_args.fails}"),
               
-              Text("Completed Times"),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: _args.datetimecompleted.length,
-                itemBuilder: (context, index){
-                  return ListTile(
-                    title: Center(child: Text(_args.datetimecompleted[index].toString())),
-                  );
-                }
-              ),
+              Text("Completed Calendar"),
               TableCalendar(
-                
                 firstDay: DateTime.now().add(const Duration(days: -3650)),
                 lastDay: DateTime.now().add(const Duration(days: 3650)),
                 focusedDay: DateTime.now(),
                 eventLoader: (day) {
                   return getCompletesForDay(day);
+                },
+                selectedDayPredicate: (day){
+                  return isSameDay(_selectedDay, day);
+                },
+                onDaySelected: (selectedDay, focusedDay){
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                  _selectedEvents.value = getCompletesForDay(selectedDay);
+                },
+                onPageChanged: (focusedDay){
+                  _focusedDay = focusedDay;
                 },
                 calendarBuilders: CalendarBuilders(
                   markerBuilder: (context, day, events) {
@@ -145,8 +160,36 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   },
                 ),
               ),
+              ValueListenableBuilder<List<DateTime>>(
+                valueListenable: _selectedEvents,
+                builder: (context, value, _){
+                  return ListView.builder(
+                    itemCount: value.length,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index){
+                      if(value.isEmpty){
+                        return null;
+                      }
+                      return Container(
+                        height: 40,
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          onTap: () => print('${value[index]}'),
+                          title: Text('${value[index]}'),
+                        ),
+                      );
+                    }
+                  );
+                }
+              ),
             ],
-            
           ),
         ),
       ),
