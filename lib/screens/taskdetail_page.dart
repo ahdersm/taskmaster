@@ -17,6 +17,7 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
+  //TODO: Need to change this so that it loads from the database instead of passing it from the list page in order to get it to load before checking for events on the calendar
   late final ValueNotifier<List<DateTime>> _selectedEvents;
   DateTime? _selectedDay;
   DateTime _focusedDay = DateTime.now();
@@ -26,8 +27,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   @override
     void initState() {
-      super.initState();
-
+      super.initState(); 
       _selectedDay = _focusedDay;
       _selectedEvents = ValueNotifier(getCompletesForDay(_selectedDay!));
     }
@@ -109,7 +109,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               Text("Completes: ${_args.completes}"),
               Text("Fails: ${_args.fails}"),
               
-              Text("Completed Calendar"),
+              Center(child: Text("Completed Calendar")),
               TableCalendar(
                 firstDay: DateTime.now().add(const Duration(days: -3650)),
                 lastDay: DateTime.now().add(const Duration(days: 3650)),
