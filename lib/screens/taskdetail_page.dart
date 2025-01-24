@@ -26,15 +26,16 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   final TaskProvider _tProvider = TaskProvider();
 
   @override
-    void initState() {
-      super.initState(); 
-      _selectedDay = _focusedDay;
-      _selectedEvents = ValueNotifier(getCompletesForDay(_selectedDay!));
-    }
+  @mustCallSuper
+  void didChangeDependencies() {
+    _args = ModalRoute.of(context)!.settings.arguments as Task;
+    _selectedDay = _focusedDay;
+    _selectedEvents = ValueNotifier(getCompletesForDay(_selectedDay!));
+  }
 
   @override
   Widget build(BuildContext context) {
-    _args = ModalRoute.of(context)!.settings.arguments as Task;
+    
     return Scaffold(
       backgroundColor: CommanMethods.backgroundcolor,
       appBar: CommanMethods.mainAppBar('Task Details: ${_args.name}'),
