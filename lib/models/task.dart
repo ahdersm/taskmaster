@@ -117,6 +117,7 @@ class Task extends ChangeNotifier{
     this.complete = true;
     this.datetimecompleted.add(DateTime.now());
     this.completes += 1;
+    
   }
 
   void taskuncomplete(){

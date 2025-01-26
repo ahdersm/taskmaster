@@ -16,7 +16,7 @@ class TaskListPage extends StatefulWidget {
 }
 
 class _TaskListPageState extends State<TaskListPage> {
-  CommanMethods cms = CommanMethods();
+  CommanMethods _cms = CommanMethods();
   late Future<List<Task>?> allTasks;
   final TaskProvider _tProvider = TaskProvider();
 
@@ -55,7 +55,7 @@ class _TaskListPageState extends State<TaskListPage> {
 
   @override
   Widget build(BuildContext context) {
-    cms.checkLastClear();
+    _cms.checkLastClear();
     List<Widget> taskListOptions = <Widget>[
       uncompletedTaskList(),
       completedTaskList(),
@@ -148,6 +148,7 @@ class _TaskListPageState extends State<TaskListPage> {
                             setState(() {
                               uncompleted[index].taskcomplete();
                               _tProvider.updateTask(uncompleted[index]);
+                              _cms.addPoints(uncompleted[index].points);
                             });
                           },
                           icon: Icon(Icons.check_box_outline_blank)
@@ -205,6 +206,7 @@ class _TaskListPageState extends State<TaskListPage> {
                             setState(() {
                               completed[index].taskuncomplete();
                               _tProvider.updateTask(completed[index]);
+                              _cms.removePoints(completed[index].points);
                             });
                           },
                           icon: Icon(Icons.check_box)

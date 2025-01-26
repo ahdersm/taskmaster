@@ -3,6 +3,7 @@ import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
 import 'package:taskmaster/screens/home_page.dart';
+import 'package:taskmaster/screens/store_page.dart';
 import 'package:taskmaster/screens/taskdetail_page.dart';
 import 'package:taskmaster/screens/tasklist_page.dart';
 import 'package:provider/provider.dart';
@@ -69,6 +70,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomePage(),
         '/tasks': (context) => TaskListPage(),
         '/task': (context) => TaskDetailPage(),
+        '/store': (context) => StorePage(),
       }
     );
   }

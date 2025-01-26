@@ -8,6 +8,7 @@ import 'package:taskmaster/services/database_service.dart';
 const String tableName = 'CommandMethods';
 const String idField = 'id';
 const String dateCheckedField = 'DateChecked';
+const String pointsField= 'points';
 
 
 class CommanMethods{
@@ -17,14 +18,17 @@ class CommanMethods{
   static const Color selectorcolor = Color.fromARGB(255, 29, 100, 200);
   static const Color buttoncolor = Color.fromARGB(255, 74, 160, 196);
 
+  final CommanMethodsProvider _cmp = CommanMethodsProvider();
   
   int? id;
   DateTime? _lastreset;
+  int? _points;
 
 
   Map<String, dynamic> toMap(){
     Map<String, Object?> map = <String, dynamic>{
       dateCheckedField: _lastreset!.millisecondsSinceEpoch,
+      pointsField : _points
     };
     if(id != null){
       map[idField] = id;
@@ -35,8 +39,25 @@ class CommanMethods{
   fromMap(Map<dynamic, dynamic>map){
     id = map[idField] as int?;
     _lastreset = DateTime.fromMillisecondsSinceEpoch(map[dateCheckedField]);
+    _points = map[pointsField] ?? 0;
   }
 
+  addPoints(int points){
+    if(_points == null){
+      _points == 0;
+    }
+    _points = _points! + points;
+    _cmp.updateSettings(this);
+  }
+
+  removePoints(int points){
+    _points = _points! + points;
+    _cmp.updateSettings(this);
+  }
+
+  int getPoints(){
+    return _points!;
+  }
 
   static AppBar mainAppBar(String title){
     return AppBar(
@@ -77,6 +98,14 @@ class CommanMethods{
               Navigator.pushNamed(context, '/tasks');
             },
           ),
+          ListTile(
+            title: const Text('Store'),
+            onTap: (){
+              //onItemTapped(0);
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/store');
+            },
+          ),
         ],
       )
     );
@@ -84,12 +113,12 @@ class CommanMethods{
 
   checkLastClear() async{
     if(_lastreset == null){
-      CommanMethodsProvider cmp = CommanMethodsProvider();
-      cmp.getSettings(this);
+      
+      _cmp.getSettings(this);
       if(this.id == null){
         _lastreset = DateTime.now();
-        cmp.createSettings(this.toMap());
-        cmp.getSettings(this);
+        _cmp.createSettings(this.toMap());
+        _cmp.getSettings(this);
       }
     }
     else if(_lastreset != null && _lastreset!.day == DateTime.now().day){
@@ -115,6 +144,7 @@ class CommanMethodsProvider{
     await database.execute('''create table $tableName (
     $idField integer primary key autoincrement,
     $dateCheckedField integer
+    $pointsField integer
     )''');
   }
 
@@ -123,12 +153,17 @@ class CommanMethodsProvider{
     await db.insert(tableName, map, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  Future<CommanMethods?> checkSettings(CommanMethods settings) async {
+    final db = await DatabaseService
+  }
+
   Future<CommanMethods?> getSettings(CommanMethods settings) async {
     final db = await DatabaseService.instance.database;
     List<Map> map = await db.query(tableName, 
       columns: [
         idField,
         dateCheckedField,
+        pointsField,
       ],
       where: '$idField = ?',
       whereArgs: [1]
