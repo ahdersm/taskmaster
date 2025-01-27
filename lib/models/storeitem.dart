@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:taskmaster/services/database_service.dart';
 
@@ -55,22 +56,28 @@ class StoreItem {
     cost = map[costField] as int;
   }
 
+  void newstoreitem({String? name, String? description, int? cost}) {
+    this.name = name;
+    this.description = description;
+    this.cost = cost;
+  }
+
 }
 
-class StoreItemService{
+class StoreItemsProvider{
   Future<void> databaseCreate(Database database) async {
     await database.execute('''create table $tableName (
     $idField integer primary key autoincrement,
-    $nameField integer,
+    $nameField String,
     $descriptionfield String,
     $costField integer,
     $boughtField String
     )''');
   }
 
-  Future<void> createItem(Map<String, dynamic>map) async {
+  Future<void> createItem(StoreItem item) async {
     final db = await DatabaseService.instance.database;
-    await db.insert(tableName, map, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(tableName, item.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<List<StoreItem>?> getItems() async {

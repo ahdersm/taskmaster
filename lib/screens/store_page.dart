@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/storeitem.dart';
+
+final _formKey = GlobalKey<FormState>();
 
 class StorePage extends StatefulWidget {
   const StorePage({super.key});
@@ -11,8 +14,12 @@ class StorePage extends StatefulWidget {
 
 class _StorePageState extends State<StorePage> {
   CommanMethods _cms = CommanMethods();
-  StoreItemService _sis = StoreItemService();
+  StoreItemsProvider _sis = StoreItemsProvider();
   late Future<List<StoreItem>?> _allStoreItems;
+
+  String? _newname;
+  String? _newdescription;
+  int? _newcost;
 
   @override
   void initState(){
@@ -31,7 +38,14 @@ class _StorePageState extends State<StorePage> {
       drawer: CommanMethods.mainDrawer(context),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () {}
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context){
+              return addItemDialog();
+            }
+          );
+        }
       ),
       body: storeItems(),
     );
@@ -106,9 +120,6 @@ class _StorePageState extends State<StorePage> {
               trailing: TextButton(
                 onPressed: () {
                   setState(() {
-                    uncompleted[index].taskcomplete();
-                    _tProvider.updateTask(uncompleted[index]);
-                    _cms.addPoints(uncompleted[index].points);
                   });
                 },
                 child: Text("BUY"),
@@ -118,6 +129,128 @@ class _StorePageState extends State<StorePage> {
         );
 
       }
+    );
+  }
+
+  Dialog addItemDialog(){
+    return Dialog.fullscreen(
+      child: Form(
+        key: _formKey,
+        child: StatefulBuilder(
+          builder: (context, setStateForDialog) {
+            return Column(
+              children: [
+                Text('Add Store Item'),
+                storeItemName(),
+                storeItemDescription(),
+                storeItemCost(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    saveButton(),
+                    IconButton(
+                      onPressed: (){
+                        Navigator.of(context).pop();
+                      },
+                      icon: Icon(Icons.close)
+                    )
+                  ],
+                ),
+              ],
+            );
+          }
+        )
+      ),
+    );
+  }
+  
+  TextFormField storeItemName() {
+    return TextFormField(
+      decoration: InputDecoration(
+        hintText: "Store Item Name",
+        hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+      ),
+      validator: (value) {
+        if(value == null || value.isEmpty){
+          return 'Enter a store item name';
+        }
+        return null;
+      },
+      onSaved: (value) {
+        _newname = value!;
+      },
+    );
+  }
+  
+  TextFormField storeItemDescription() {
+    return TextFormField(
+      maxLines: null,
+      decoration: InputDecoration(
+        hintText: "Store Item Description",
+        hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+      ),
+      validator: (value) {
+        if(value == null || value.isEmpty){
+          return 'Enter a store item name';
+        }
+        return null;
+      },
+      onSaved: (value) {
+        _newdescription = value!;
+      },
+    );
+  }
+  
+  TextFormField storeItemCost() {
+    return TextFormField(
+      initialValue: "0",
+      keyboardType: TextInputType.number,
+      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+      decoration: InputDecoration(
+        hintText: "Task Point(s)",
+        hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+      ),
+      validator: (value) {
+        if(value == null || value.isEmpty){
+          return 'Enter a task name';
+        }
+        return null;
+      },
+      onSaved: (value) {
+        _newcost = int.parse(value!);
+      },
+    );
+  }
+  
+  TextButton saveButton() {
+    return TextButton(
+      style: TextButton.styleFrom(
+        textStyle: Theme.of(context).textTheme.labelLarge, 
+      ),
+      onPressed: (){
+        setState(() {
+          if (_formKey.currentState!.validate()){
+            _formKey.currentState!.save();
+            
+            StoreItem newstoreitem = StoreItem();
+            newstoreitem.newstoreitem(
+              name: _newname,
+              description: _newdescription,
+              cost: _newcost,
+            );
+            _sis.createItem(newstoreitem);
+            _allStoreItems = _sis.getItems();
+            Navigator.of(context).pop();
+            _newname = '';
+            _newdescription = '';
+            _newcost = 0;
+          }
+        });
+      },
+      child: const Text('Create'),
     );
   }
 }
