@@ -82,8 +82,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 builder: (context, tasklist, child){
                   return TextButton(
                     onPressed:(){
-                      Navigator.of(context).pop();
                       _tProvider.deleteTask(_args.id!);
+                      Navigator.of(context).pop();
                     },
                     child: Text(
                       "Delete Task",

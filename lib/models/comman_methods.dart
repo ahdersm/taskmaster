@@ -12,6 +12,8 @@ const String pointsField= 'points';
 
 
 class CommanMethods{
+  static const double appbarheight = 55;
+
   static const Color backgroundcolor = Color.fromARGB(255, 214, 228, 245);
   static const Color barcolor = Color.fromARGB(255, 123, 183, 209);
   static const Color tilecolor = Color.fromARGB(255, 164, 201, 223);
@@ -55,12 +57,14 @@ class CommanMethods{
     _cmp.updateSettings(this);
   }
 
-  int getPoints(){
-    return _points!;
+  Future<int> getPoints() async {
+    await _cmp.getSettings(this);
+    return this._points!;
   }
 
   static AppBar mainAppBar(String title){
     return AppBar(
+      toolbarHeight: appbarheight,
       backgroundColor: barcolor,
       title: Text(title),
     );
@@ -113,15 +117,16 @@ class CommanMethods{
 
   checkLastClear() async{
     if(_lastreset == null){
-      
-      _cmp.getSettings(this);
-      if(this.id == null){
+      if(await _cmp.checkSettings()){
+        await _cmp.getSettings(this);
+      }
+      else{
         _lastreset = DateTime.now();
-        _cmp.createSettings(this.toMap());
-        _cmp.getSettings(this);
+        await _cmp.createSettings(this.toMap());
+        await _cmp.getSettings(this);
       }
     }
-    else if(_lastreset != null && _lastreset!.day == DateTime.now().day){
+    if(_lastreset != null && _lastreset!.day == DateTime.now().day){
       return;
     }
     TaskProvider tprovider = TaskProvider();
@@ -143,7 +148,7 @@ class CommanMethodsProvider{
   Future<void> databaseCreate(Database database) async {
     await database.execute('''create table $tableName (
     $idField integer primary key autoincrement,
-    $dateCheckedField integer
+    $dateCheckedField integer,
     $pointsField integer
     )''');
   }
@@ -153,8 +158,11 @@ class CommanMethodsProvider{
     await db.insert(tableName, map, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<CommanMethods?> checkSettings(CommanMethods settings) async {
-    final db = await DatabaseService
+  Future<bool> checkSettings() async {
+    final db = await DatabaseService.instance.database;
+    var result = await db.rawQuery('SELECT EXISTS(SELECT 1 FROM $tableName WHERE id=="1")');
+    int? exists = Sqflite.firstIntValue(result);
+    return exists == 1;
   }
 
   Future<CommanMethods?> getSettings(CommanMethods settings) async {

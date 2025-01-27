@@ -26,7 +26,7 @@ class DatabaseService{
     final databasePath = join(databaseDirPath, dbFile);
     final database = await openDatabase(
       databasePath,
-      version: 5,
+      version: 8,
       onCreate: create,
       singleInstance: true,
     );
