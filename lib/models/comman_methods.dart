@@ -53,12 +53,16 @@ class CommanMethods{
   }
 
   removePoints(int points){
-    _points = _points! + points;
+    _points = _points! - points;
     _cmp.updateSettings(this);
   }
 
-  Future<int> getPoints() async {
+  Future<int> getDBPoints() async {
     await _cmp.getSettings(this);
+    return this._points!;
+  }
+
+  int getPoints(){
     return this._points!;
   }
 
@@ -114,6 +118,7 @@ class CommanMethods{
       )
     );
   }
+
 
   checkLastClear() async{
     if(_lastreset == null){

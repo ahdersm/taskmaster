@@ -68,10 +68,10 @@ class StoreItemsProvider{
   Future<void> databaseCreate(Database database) async {
     await database.execute('''create table $tableName (
     $idField integer primary key autoincrement,
-    $nameField String,
-    $descriptionfield String,
+    $nameField text not null,
+    $descriptionfield text,
     $costField integer,
-    $boughtField String
+    $boughtField text
     )''');
   }
 
@@ -118,6 +118,14 @@ class StoreItemsProvider{
     return null;
   }
 
+  Future<int> deleteItem(int id) async {
+    final db = await DatabaseService.instance.database;
+    return await db.delete(tableName,
+      where: '$idField = ?',
+      whereArgs: [id]
+    );
+  }
+
   Future<int> updateSettings(StoreItem item) async {
     final db = await DatabaseService.instance.database;
     return await db.update(tableName, item.toMap(),
@@ -125,4 +133,6 @@ class StoreItemsProvider{
       whereArgs: [item.id]
     );
   }
+
+
 }

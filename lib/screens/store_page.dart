@@ -53,7 +53,7 @@ class _StorePageState extends State<StorePage> {
 
   FutureBuilder appBarPoints(){
     return FutureBuilder<int>(
-      future: _cms.getPoints(), 
+      future: _cms.getDBPoints(), 
       builder: (context, snapshot){
         switch(snapshot.connectionState){
           case ConnectionState.waiting:
@@ -97,7 +97,7 @@ class _StorePageState extends State<StorePage> {
     );
   }
   
-  storeItemsList(AsyncSnapshot<List<StoreItem>?> snapshot) {
+  ListView storeItemsList(AsyncSnapshot<List<StoreItem>?> snapshot) {
     return ListView.builder(
       itemCount: snapshot.data!.length,
       itemBuilder: (context, index){
@@ -106,7 +106,7 @@ class _StorePageState extends State<StorePage> {
           child: Card(
             child: ListTile(
               title: Text(snapshot.data![index].name!),
-              subtitle: Text('Cost: ${snapshot.data![index].cost!}'),
+              subtitle: Text('Cost: ${snapshot.data![index].cost!.toString()}'),
               onTap: () async {
                 await Navigator.pushNamed(
                   context,
@@ -117,13 +117,7 @@ class _StorePageState extends State<StorePage> {
                   _allStoreItems = _sis.getItems();
                 });
               },
-              trailing: TextButton(
-                onPressed: () {
-                  setState(() {
-                  });
-                },
-                child: Text("BUY"),
-              )
+              trailing: buyButton(snapshot.data![index].cost)
             ),
           ),
         );
@@ -252,5 +246,26 @@ class _StorePageState extends State<StorePage> {
       },
       child: const Text('Create'),
     );
+  }
+  
+  dynamic buyButton(int? cost) {
+    if(cost == null){
+      return Text("Something Went Wrong");
+    }
+    int points = _cms.getPoints();
+    if(points < cost){
+      return Text("Not Enough Points");
+    }
+    else{
+      return TextButton(
+        onPressed: () {
+          _cms.removePoints(cost);
+          setState(() {
+            _allStoreItems = _sis.getItems();
+          });
+        },
+        child: Text("BUY"),
+      );
+    }
   }
 }
