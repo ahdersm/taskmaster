@@ -110,7 +110,7 @@ class _StorePageState extends State<StorePage> {
               onTap: () async {
                 await Navigator.pushNamed(
                   context,
-                  '/task',
+                  '/item',
                   arguments: snapshot.data![index]
                 );
                 setState((){
@@ -187,7 +187,7 @@ class _StorePageState extends State<StorePage> {
       ),
       validator: (value) {
         if(value == null || value.isEmpty){
-          return 'Enter a store item name';
+          return 'Enter a store item Description';
         }
         return null;
       },
@@ -203,13 +203,13 @@ class _StorePageState extends State<StorePage> {
       keyboardType: TextInputType.number,
       inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
       decoration: InputDecoration(
-        hintText: "Task Point(s)",
+        hintText: "Item Cost",
         hintStyle: TextStyle(color: Colors.black, fontSize: 16),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
       ),
       validator: (value) {
         if(value == null || value.isEmpty){
-          return 'Enter a task name';
+          return 'Enter a item cost';
         }
         return null;
       },

@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/storeitem.dart';
+import 'package:intl/intl.dart';
 
-class TaskDetailPage extends StatefulWidget {
-  const TaskDetailPage({super.key});
+final _formKey = GlobalKey<FormState>();
+
+class StoreItemDetailPage extends StatefulWidget {
+  const StoreItemDetailPage({super.key});
   @override
-  State<TaskDetailPage> createState() => _TaskDetailPageState();
+  State<StoreItemDetailPage> createState() => _StoreItemDetailPageState();
 }
 
-class _TaskDetailPageState extends State<TaskDetailPage> {
+class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
   late final ValueNotifier<List<DateTime>> _selectedEvents;
   DateTime? _selectedDay;
   DateTime _focusedDay = DateTime.now();
-  String _selectedFreq = '';
   StoreItem _args = StoreItem();
   final StoreItemsProvider _sProvider = StoreItemsProvider();
 
@@ -21,14 +25,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   void didChangeDependencies() {
     _args = ModalRoute.of(context)!.settings.arguments as StoreItem;
     _selectedDay = _focusedDay;
-    _selectedEvents = ValueNotifier(getCompletesForDay(_selectedDay!));
+    _selectedEvents = ValueNotifier(getBoughtForDay(_selectedDay!));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CommanMethods.backgroundcolor,
-      appBar: CommanMethods.mainAppBar('Task Details: ${_args.name}'),
+      appBar: CommanMethods.mainAppBar('Item Details: ${_args.name}'),
       bottomNavigationBar: Container(
         padding: EdgeInsets.fromLTRB(0, 0, 0, 25),
         color: Colors.blueGrey,
@@ -47,12 +51,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   showDialog(
                     context: context,
                     builder: (BuildContext context){
-                      return editTaskDialog();
+                      return editItemDialog();
                     }
                   );
                 },
                 child: Text(
-                  "Edit Task",
+                  "Edit Item",
                   style: TextStyle(color: Colors.white),
                 )
               )
@@ -70,7 +74,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   Navigator.of(context).pop();
                 },
                 child: Text(
-                  "Delete Task",
+                  "Delete Item",
                   style: TextStyle(color: Colors.white),  
                 )
               )
@@ -78,6 +82,147 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           ], 
         ),
       ),
-      body: Text("PlaceHolder")
+      body: Column(
+        children: [
+          Text("Name: ${_args.name}"),
+          Text("Description: ${_args.description}"),
+          Text("Cost: ${_args.cost.toString()}"),
+          calender()
+        ],
+      )
+    );
+  } 
+  TableCalendar calender(){
+    return TableCalendar(
+      firstDay: DateTime.now().add(const Duration(days: -3650)),
+      lastDay: DateTime.now().add(const Duration(days: 3650)),
+      focusedDay: DateTime.now(),
+      eventLoader: (day) {
+        return getBoughtForDay(day);
+      },
+      selectedDayPredicate: (day){
+        return isSameDay(_selectedDay, day);
+      },
+      onDaySelected: (selectedDay, focusedDay){
+        setState(() {
+          _selectedDay = selectedDay;
+          _focusedDay = focusedDay;
+        });
+        _selectedEvents.value = getBoughtForDay(selectedDay);
+      },
+      onPageChanged: (focusedDay){
+        _focusedDay = focusedDay;
+      },
+      calendarBuilders: CalendarBuilders(
+        markerBuilder: (context, day, events) {
+          if(events.isNotEmpty){
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Icon(Icons.check_circle, color: Colors.green, size: 16,),
+            );
+          }
+          // Needs to have bought day and see if it does not contain the current day and mark it as something else
+          else if(_args.boughtlist.isNotEmpty){
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Icon(Icons.cancel_outlined, color: Colors.grey, size: 16,),
+            );
+          }
+          else if(day.isAfter(DateTime.now().subtract(const Duration(days: 1))) || ((DateFormat.yMd().format(day) == DateFormat.yMd().format(DateTime.now()) && DateTime.now().isBefore(_args.boughtlist.last)))){
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Icon(Icons.radio_button_off, color: Colors.grey, size: 16,),
+            );
+          }
+          else{
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Icon(Icons.cancel_outlined, color: Colors.red, size: 16,),
+            );
+          }
+        },
+      ),
     );
   }
+
+  List<DateTime> getBoughtForDay(DateTime day) {
+    List<DateTime> events = [];
+    for(DateTime complete in _args.boughtlist){
+      if(complete.day == day.day && complete.month == day.month && complete.year == day.year){
+        events.add(complete);
+      }
+    }
+    return events; 
+  }
+  
+  Dialog editItemDialog() {
+    return Dialog.fullscreen(
+      child: Form(
+        key: _formKey,
+        child: StatefulBuilder(
+          builder: (context, setStateForDialog) {
+            return Column(
+              children: [
+                TextFormField(
+                  initialValue: _args.name,
+                  decoration: InputDecoration(
+                    hintText: "Item Name",
+                    hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  validator: (value) {
+                    if(value == null || value.isEmpty){
+                      return 'Enter a item name';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _args.name = value!;
+                  },
+                ),
+                TextFormField(
+                  initialValue: _args.description,
+                  maxLines: null,
+                  decoration: InputDecoration(
+                    hintText: "Item Description",
+                    hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  validator: (value) {
+                    if(value == null || value.isEmpty){
+                      return 'Enter a item description';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _args.description = value!;
+                  },
+                ),
+                TextFormField(
+                  initialValue: _args.cost.toString(),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    hintText: "Item cost",
+                    hintStyle: TextStyle(color: Colors.black, fontSize: 16),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
+                  ),
+                  validator: (value) {
+                    if(value == null || value.isEmpty){
+                      return 'Enter a item cast';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    _args.cost = int.parse(value!);
+                  },
+                ),
+
+              ],
+            );
+          }
+        )
+      ),
+    );
+  }
+}
