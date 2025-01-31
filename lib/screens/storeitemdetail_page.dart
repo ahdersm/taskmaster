@@ -14,7 +14,8 @@ class StoreItemDetailPage extends StatefulWidget {
 }
 
 class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
-  late final ValueNotifier<List<DateTime>> _selectedEvents;
+  late ValueNotifier<List<DateTime>> _selectedEvents;
+  CommanMethods _cms = CommanMethods();
   DateTime? _selectedDay;
   DateTime _focusedDay = DateTime.now();
   StoreItem _args = StoreItem();
@@ -30,6 +31,7 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    _cms.getSettings();
     return Scaffold(
       backgroundColor: CommanMethods.backgroundcolor,
       appBar: CommanMethods.mainAppBar('Item Details: ${_args.name}'),
@@ -87,7 +89,48 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
           Text("Name: ${_args.name}"),
           Text("Description: ${_args.description}"),
           Text("Cost: ${_args.cost.toString()}"),
-          calender()
+          calender(),
+          ValueListenableBuilder<List<DateTime>>(
+            valueListenable: _selectedEvents,
+            builder: (context, value, _){
+              return ListView.builder(
+                itemCount: value.length,
+                shrinkWrap: true,
+                itemBuilder: (context, index){
+                  if(value.isEmpty){
+                    return null;
+                  }
+                  return Container(
+                    alignment: Alignment.centerLeft,
+                    height: 60,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      onTap: () => print('${value[index]}'),
+                      title: Text('${DateFormat('kk:mm').format(value[index])}'),
+                      trailing: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _args.revokeItemBought(value[index]);
+                            _sProvider.updateItem(_args);
+                            _cms.addPoints(_args.cost!);
+                            
+                          });
+                        },
+                        icon: Icon(Icons.cancel)
+                      ),
+                    ),
+                  );
+                }
+              );
+            }
+          ),
         ],
       )
     );
@@ -121,23 +164,17 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
               child: Icon(Icons.check_circle, color: Colors.green, size: 16,),
             );
           }
-          // Needs to have bought day and see if it does not contain the current day and mark it as something else
-          else if(_args.boughtlist.isNotEmpty){
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Icon(Icons.cancel_outlined, color: Colors.grey, size: 16,),
-            );
-          }
-          else if(day.isAfter(DateTime.now().subtract(const Duration(days: 1))) || ((DateFormat.yMd().format(day) == DateFormat.yMd().format(DateTime.now()) && DateTime.now().isBefore(_args.boughtlist.last)))){
+          else if(day.isAfter(DateTime.now().subtract(const Duration(days: 1))) || DateFormat.yMd().format(day) == DateFormat.yMd().format(DateTime.now())){
             return Align(
               alignment: Alignment.topLeft,
               child: Icon(Icons.radio_button_off, color: Colors.grey, size: 16,),
             );
           }
+          // Needs to have bought day and see if it does not contain the current day and mark it as something else
           else{
             return Align(
               alignment: Alignment.topLeft,
-              child: Icon(Icons.cancel_outlined, color: Colors.red, size: 16,),
+              child: Icon(Icons.cancel_outlined, color: Colors.grey, size: 16,),
             );
           }
         },
@@ -217,7 +254,18 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
                     _args.cost = int.parse(value!);
                   },
                 ),
-
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    //saveButton(selectedDays,newtimes),
+                    IconButton(
+                      onPressed: (){
+                        Navigator.of(context).pop();
+                      },
+                      icon: Icon(Icons.close)
+                    )
+                  ],
+                ),
               ],
             );
           }

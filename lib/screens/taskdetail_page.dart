@@ -17,12 +17,13 @@ class TaskDetailPage extends StatefulWidget {
 }
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
-  late final ValueNotifier<List<DateTime>> _selectedEvents;
+  late ValueNotifier<List<DateTime>> _selectedEvents;
   DateTime? _selectedDay;
   DateTime _focusedDay = DateTime.now();
   String _selectedFreq = '';
   Task _args = Task();
   final TaskProvider _tProvider = TaskProvider();
+
 
   @override
   @mustCallSuper
@@ -171,7 +172,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         return null;
                       }
                       return Container(
-                        height: 40,
+                        height: 50,
                         margin: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 4,
@@ -182,7 +183,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         ),
                         child: ListTile(
                           onTap: () => print('${value[index]}'),
-                          title: Text('${value[index]}'),
+                          title: Center(child: Text('${value[index]}')),
                         ),
                       );
                     }

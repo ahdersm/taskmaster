@@ -117,7 +117,7 @@ class _StorePageState extends State<StorePage> {
                   _allStoreItems = _sis.getItems();
                 });
               },
-              trailing: buyButton(snapshot.data![index].cost)
+              trailing: buyButton(snapshot.data![index])
             ),
           ),
         );
@@ -248,18 +248,20 @@ class _StorePageState extends State<StorePage> {
     );
   }
   
-  dynamic buyButton(int? cost) {
-    if(cost == null){
+  dynamic buyButton(StoreItem item) {
+    if(item.cost == null){
       return Text("Something Went Wrong");
     }
     int points = _cms.getPoints();
-    if(points < cost){
+    if(points < item.cost!){
       return Text("Not Enough Points");
     }
     else{
       return TextButton(
         onPressed: () {
-          _cms.removePoints(cost);
+          _cms.removePoints(item.cost!);
+          item.itemBought();
+          _sis.updateItem(item);
           setState(() {
             _allStoreItems = _sis.getItems();
           });

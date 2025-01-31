@@ -44,17 +44,17 @@ class CommanMethods{
     _points = map[pointsField] ?? 0;
   }
 
-  addPoints(int points){
+  addPoints(int points) async{
     if(_points == null){
       _points == 0;
     }
     _points = _points! + points;
-    _cmp.updateSettings(this);
+    await _cmp.updateSettings(this);
   }
 
-  removePoints(int points){
+  removePoints(int points) async {
     _points = _points! - points;
-    _cmp.updateSettings(this);
+    await _cmp.updateSettings(this);
   }
 
   Future<int> getDBPoints() async {
@@ -64,6 +64,10 @@ class CommanMethods{
 
   int getPoints(){
     return this._points!;
+  }
+
+  void getSettings() async{
+    await _cmp.getSettings(this);
   }
 
   static AppBar mainAppBar(String title){

@@ -62,6 +62,14 @@ class StoreItem {
     this.cost = cost;
   }
 
+  void itemBought(){
+    boughtlist.add(DateTime.now());
+  }
+
+  void revokeItemBought(DateTime datetime){
+    boughtlist.remove(datetime);
+  }
+
 }
 
 class StoreItemsProvider{
@@ -89,6 +97,7 @@ class StoreItemsProvider{
         nameField,
         descriptionfield,
         costField,
+        boughtField,
       ],
     );
     if(maps.isEmpty){
@@ -108,6 +117,7 @@ class StoreItemsProvider{
         nameField,
         descriptionfield,
         costField,
+        boughtField,
       ],
       where: '$idField = ?',
       whereArgs: [item.id]
@@ -126,7 +136,7 @@ class StoreItemsProvider{
     );
   }
 
-  Future<int> updateSettings(StoreItem item) async {
+  Future<int> updateItem(StoreItem item) async {
     final db = await DatabaseService.instance.database;
     return await db.update(tableName, item.toMap(),
       where: '$idField = ?',
