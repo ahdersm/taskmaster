@@ -20,6 +20,7 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
   DateTime _focusedDay = DateTime.now();
   StoreItem _args = StoreItem();
   final StoreItemsProvider _sProvider = StoreItemsProvider();
+  CalendarFormat _calendarFormat = CalendarFormat.week;
 
   @override
   @mustCallSuper
@@ -34,7 +35,7 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
     _cms.getSettings();
     return Scaffold(
       backgroundColor: CommanMethods.backgroundcolor,
-      appBar: CommanMethods.mainAppBar('Item Details: ${_args.name}'),
+      appBar: CommanMethods.mainAppBar('Item Details: ${_args.name} - Cost: ${_args.cost}'),
       bottomNavigationBar: Container(
         padding: EdgeInsets.fromLTRB(0, 0, 0, 25),
         color: Colors.blueGrey,
@@ -86,51 +87,12 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
       ),
       body: Column(
         children: [
-          Text("Name: ${_args.name}"),
+
           Text("Description: ${_args.description}"),
           Text("Cost: ${_args.cost.toString()}"),
           calender(),
-          ValueListenableBuilder<List<DateTime>>(
-            valueListenable: _selectedEvents,
-            builder: (context, value, _){
-              return ListView.builder(
-                itemCount: value.length,
-                shrinkWrap: true,
-                itemBuilder: (context, index){
-                  if(value.isEmpty){
-                    return null;
-                  }
-                  return Container(
-                    alignment: Alignment.centerLeft,
-                    height: 60,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      onTap: () => print('${value[index]}'),
-                      title: Text('${DateFormat('kk:mm').format(value[index])}'),
-                      trailing: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _args.revokeItemBought(value[index]);
-                            _sProvider.updateItem(_args);
-                            _cms.addPoints(_args.cost!);
-                            
-                          });
-                        },
-                        icon: Icon(Icons.cancel)
-                      ),
-                    ),
-                  );
-                }
-              );
-            }
-          ),
+          eventList(),
+          
         ],
       )
     );
@@ -140,6 +102,12 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
       firstDay: DateTime.now().add(const Duration(days: -3650)),
       lastDay: DateTime.now().add(const Duration(days: 3650)),
       focusedDay: DateTime.now(),
+      calendarFormat: _calendarFormat,
+      onFormatChanged: (format) {
+        setState(() {
+          _calendarFormat = format;
+        });
+      },
       eventLoader: (day) {
         return getBoughtForDay(day);
       },
@@ -257,7 +225,7 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    //saveButton(selectedDays,newtimes),
+                    saveButton(),
                     IconButton(
                       onPressed: (){
                         Navigator.of(context).pop();
@@ -271,6 +239,69 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
           }
         )
       ),
+    );
+  }
+  
+  Expanded eventList() {
+    return Expanded(
+      child: ValueListenableBuilder<List<DateTime>>(
+        valueListenable: _selectedEvents,
+        builder: (context, value, _){
+          return ListView.builder(
+            itemCount: value.length,
+            itemBuilder: (context, index){
+              if(value.isEmpty){
+                return null;
+              }
+              return Container(
+                alignment: Alignment.centerLeft,
+                height: 60,
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  onTap: () => print('${value[index]}'),
+                  title: Text('${DateFormat('kk:mm').format(value[index])}'),
+                  trailing: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _args.revokeItemBought(value[index]);
+                        _sProvider.updateItem(_args);
+                        _cms.addPoints(_args.cost!);
+                        _selectedEvents = ValueNotifier(getBoughtForDay(_selectedDay!));
+                      });
+                    },
+                    icon: Icon(Icons.cancel)
+                  ),
+                ),
+              );
+            }
+          );
+        }
+      ),
+    );
+  }
+
+  TextButton saveButton(){
+    return TextButton(
+      style: TextButton.styleFrom(
+        textStyle: Theme.of(context).textTheme.labelLarge, 
+      ),
+      onPressed: (){
+        setState(() {
+          if (_formKey.currentState!.validate()){
+            _formKey.currentState!.save();
+            _sProvider.updateItem(_args);
+            Navigator.of(context).pop();
+          }
+        });
+      },
+      child: const Text('Save'),
     );
   }
 }

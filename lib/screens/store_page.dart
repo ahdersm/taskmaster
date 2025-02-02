@@ -25,6 +25,7 @@ class _StorePageState extends State<StorePage> {
   void initState(){
     super.initState();
     _allStoreItems = _sis.getItems();
+    _cms.getSettings();
   }
 
   @override
@@ -57,7 +58,7 @@ class _StorePageState extends State<StorePage> {
       builder: (context, snapshot){
         switch(snapshot.connectionState){
           case ConnectionState.waiting:
-            return Center(child: CircularProgressIndicator());
+            return CommanMethods.mainAppBar('Store - Points: ${snapshot.data}');
           case ConnectionState.done:
           default:
             if(snapshot.hasError){
@@ -74,26 +75,26 @@ class _StorePageState extends State<StorePage> {
     );
   }
   
-  storeItems() {
+  Widget storeItems() {
     return FutureBuilder(
-      future: _allStoreItems, 
-      builder: (context, snapshot){
-        switch(snapshot.connectionState){
-          case ConnectionState.waiting:
-            return Center(child: CircularProgressIndicator());
-          case ConnectionState.done:
-          default:
-            if(snapshot.hasError){
-              return Text("${snapshot.error}");
-            }
-            else if(snapshot.hasData){
-              return storeItemsList(snapshot);
-            }
-            else{
-              return Center(child: Text("No Store Items, Add one!"));
-            }
+        future: _allStoreItems, 
+        builder: (context, snapshot){
+          switch(snapshot.connectionState){
+            case ConnectionState.waiting:
+              return Center(child: CircularProgressIndicator());
+            case ConnectionState.done:
+            default:
+              if(snapshot.hasError){
+                return Text("${snapshot.error}");
+              }
+              else if(snapshot.hasData){
+                return storeItemsList(snapshot);
+              }
+              else{
+                return Center(child: Text("No Store Items, Add one!"));
+              }
+          }
         }
-      }
     );
   }
   
