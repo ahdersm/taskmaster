@@ -126,6 +126,11 @@ class Task extends ChangeNotifier{
     this.completes -= 1;
   }
 
+  void removeComplete(DateTime completetime){
+    this.datetimecompleted.remove(completetime);
+    this.completes -= 1;
+  }
+
   void taskfailed(){
     this.fails += 1;
   }

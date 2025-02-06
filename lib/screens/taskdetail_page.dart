@@ -23,11 +23,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   String _selectedFreq = '';
   Task _args = Task();
   final TaskProvider _tProvider = TaskProvider();
+  CalendarFormat _calendarFormat = CalendarFormat.week;
+  CommanMethods _cms = CommanMethods();
 
 
   @override
   @mustCallSuper
   void didChangeDependencies() {
+    _cms.getSettings();
     _args = ModalRoute.of(context)!.settings.arguments as Task;
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(getCompletesForDay(_selectedDay!));
@@ -115,6 +118,12 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 firstDay: DateTime.now().add(const Duration(days: -3650)),
                 lastDay: DateTime.now().add(const Duration(days: 3650)),
                 focusedDay: DateTime.now(),
+                calendarFormat: _calendarFormat,
+                onFormatChanged: (format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                },
                 eventLoader: (day) {
                   return getCompletesForDay(day);
                 },
@@ -184,6 +193,21 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         child: ListTile(
                           onTap: () => print('${value[index]}'),
                           title: Center(child: Text('${value[index]}')),
+                          trailing: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                DateTime now = DateTime.now();
+                                _args.removeComplete(value[index]);
+                                _cms.removePoints(_args.points);
+                                _selectedEvents = ValueNotifier(getCompletesForDay(_selectedDay!));
+                                if(now.day == value[index].day && now.month == value[index].month &&now.year == value[index].year){
+                                  _args.complete = false;
+                                }
+                                _tProvider.updateTask(_args);
+                              });
+                            },
+                            icon: Icon(Icons.cancel)
+                          ),
                         ),
                       );
                     }

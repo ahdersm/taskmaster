@@ -194,12 +194,15 @@ class _TaskListPageState extends State<TaskListPage> {
                         tileColor: Colors.tealAccent,
                         title: Text(completed[index].name),
                         subtitle: Text('Due next: ${findNextDue(completed[index])}'),
-                        onTap: () {
-                          Navigator.pushNamed(
+                        onTap: () async {
+                          await Navigator.pushNamed(
                             context,
                             '/task',
                             arguments: completed[index]
                           );
+                          setState((){
+                            allTasks = _tProvider.getAllTasks();
+                          });
                         },
                         trailing: IconButton(
                           onPressed: () {
@@ -252,12 +255,15 @@ class _TaskListPageState extends State<TaskListPage> {
                       child: ListTile(
                         title: Text(unavailable[index].name),
                         subtitle: Text('Due next: ${findNextDue(unavailable[index]).split(' ')[0]} at 12:01 AM'),
-                        onTap: () {
-                          Navigator.pushNamed(
+                        onTap: () async {
+                          await Navigator.pushNamed(
                             context,
                             '/task',
                             arguments: unavailable[index]
                           );
+                          setState((){
+                            allTasks = _tProvider.getAllTasks();
+                          });
                         },
                       ),
                     ),
