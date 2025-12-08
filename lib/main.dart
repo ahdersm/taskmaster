@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
+import 'package:taskmaster/screens/login_page.dart';
 import 'package:taskmaster/screens/home_page.dart';
 import 'package:taskmaster/screens/store_page.dart';
 import 'package:taskmaster/screens/storeitemdetail_page.dart';
@@ -66,8 +67,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(fontFamily: 'Poppins'),
-      home: HomePage(),
+      home: LoginPage(),
       routes: {
+        '/login': (context) => LoginPage(),
         '/home': (context) => HomePage(),
         '/tasks': (context) => TaskListPage(),
         '/task': (context) => TaskDetailPage(),

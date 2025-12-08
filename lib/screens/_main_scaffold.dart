@@ -23,7 +23,7 @@ class MainScaffold extends StatelessWidget{
                 decoration: BoxDecoration(color: Colors.blue),
                 margin: EdgeInsets.all(0.0),
                 padding: EdgeInsets.all(0.0),
-                child: Center(child: Text("Application Name")),
+                child: Center(child: Text("Application Name!")),
               ),
             ),
             ListTile(

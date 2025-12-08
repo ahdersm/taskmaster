@@ -91,7 +91,7 @@ class CommanMethods{
               decoration: BoxDecoration(color: barcolor),
               margin: EdgeInsets.all(0.0),
               padding: EdgeInsets.all(0.0),
-              child: Center(child: Text("Application Name")),
+              child: Center(child: Text("Application Name!")),
             ),
           ),
           ListTile(
@@ -116,6 +116,14 @@ class CommanMethods{
               //onItemTapped(0);
               Navigator.pop(context);
               Navigator.pushNamed(context, '/store');
+            },
+          ),
+          ListTile(
+            title: const Text('Logout'),
+            onTap: (){
+              //onItemTapped(0);
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/login');
             },
           ),
         ],
