@@ -16,6 +16,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
+  bool _obscurePassword = true;
   Future<String>? _response;
   Future<String> submitData() async {
     final response = await http.post(
@@ -110,11 +111,22 @@ class _LoginPageState extends State<LoginPage> {
                                 border: Border(bottom: BorderSide(color: Colors.grey)),
                               ),
                               child: TextField(
+                                obscureText: _obscurePassword,
                                 controller: _password,
                                 decoration: InputDecoration(
                                   hintText: "Password",
                                   hintStyle: TextStyle(color: Colors.grey),
-                                  border: InputBorder.none
+                                  border: InputBorder.none,
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword; // Toggle password visibility
+                                      });
+                                    },
+                                  ),
                                 )
                               )
                             )

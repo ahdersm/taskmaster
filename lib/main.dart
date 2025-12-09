@@ -10,6 +10,7 @@ import 'package:taskmaster/screens/taskdetail_page.dart';
 import 'package:taskmaster/screens/tasklist_page.dart';
 import 'package:provider/provider.dart';
 import 'package:workmanager/workmanager.dart';
+import 'dart:io';
 
 const simpleTaskKey = "be.tramckrijte.workmanagerExample.simpleTask";
 const rescheduledTaskKey = "be.tramckrijte.workmanagerExample.rescheduledTask";
@@ -32,6 +33,14 @@ void callbackDispatcher() {
   });
 }
 
+class MyHttpOverrides extends HttpOverrides{
+  @override
+  HttpClient createHttpClient(SecurityContext? context){
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
+  }
+}
+
 
 void main() {
   
@@ -40,7 +49,7 @@ void main() {
     callbackDispatcher, // The top level function, aka callbackDispatcher
     isInDebugMode: true // If enabled it will post a notification whenever the task is running. Handy for debugging tasks
   );
-
+  HttpOverrides.global = MyHttpOverrides();
   runApp(
     MultiProvider(
       providers:[
