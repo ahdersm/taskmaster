@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:taskmaster/api/auth_api.dart';
+import 'package:taskmaster/api/api_client.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/task.dart';
+import 'package:taskmaster/repositories/auth_repository.dart';
 import 'package:taskmaster/screens/_main_scaffold.dart';
 import 'package:taskmaster/services/database_service.dart';
 import 'package:http/http.dart' as http;
@@ -14,22 +17,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final authRepo = AuthRepository(AuthApi(ApiClient()));
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
   bool _obscurePassword = true;
-  Future<String>? _response;
-  Future<String> submitData() async {
-    final response = await http.post(
-      Uri.parse('https://10.0.2.2:8081/api/Auth'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': _email.text, 'password': _password.text}),
-    );
-    if (response.statusCode == 200) {
-      return 'Success: ${response.body}';
-    } else {
-      throw Exception('Failed to send data');
-    }
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,10 +135,9 @@ class _LoginPageState extends State<LoginPage> {
                           color: Color(0xffca485c),
                         ),
                         child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _response = submitData();
-                            });
+                          onPressed: () async {
+                            await authRepo.login(_email.text, _password.text);
+                            Navigator.pushReplacementNamed(context, "/home");
                           },
                           child: Text("Login", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))
                         )
