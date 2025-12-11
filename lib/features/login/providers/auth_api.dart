@@ -1,4 +1,4 @@
-import 'package:taskmaster/api/api_client.dart';
+import 'package:taskmaster/shared/providers/api/api_client.dart';
 
 class AuthApi {
   final ApiClient api;

@@ -7,6 +7,7 @@ import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
 import 'package:intl/intl.dart';
+import 'package:taskmaster/shared/widgets/main_appbar_widget.dart';
 
 final _formKey = GlobalKey<FormState>();
 
@@ -41,7 +42,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     
     return Scaffold(
       backgroundColor: CommanMethods.backgroundcolor,
-      appBar: CommanMethods.mainAppBar('Task Details: ${_args.name}'),
+      appBar: mainAppBar('Task Details: ${_args.name}'),
       bottomNavigationBar: Container(
         padding: EdgeInsets.fromLTRB(0, 0, 0, 25),
         color: Colors.blueGrey,

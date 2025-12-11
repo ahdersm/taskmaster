@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:taskmaster/api/auth_api.dart';
-import 'package:taskmaster/api/api_client.dart';
+import 'package:taskmaster/features/login/providers/auth_api.dart';
+import 'package:taskmaster/shared/providers/api/api_client.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/task.dart';
-import 'package:taskmaster/repositories/auth_repository.dart';
+import 'package:taskmaster/features/login/providers/auth_repository.dart';
 import 'package:taskmaster/screens/_main_scaffold.dart';
 import 'package:taskmaster/services/database_service.dart';
 import 'package:http/http.dart' as http;

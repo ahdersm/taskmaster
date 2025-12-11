@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/storeitem.dart';
+import 'package:taskmaster/shared/widgets/main_appbar_widget.dart';
+import 'package:taskmaster/shared/widgets/main_drawer_widget.dart';
 
 final _formKey = GlobalKey<FormState>();
 
@@ -36,7 +38,7 @@ class _StorePageState extends State<StorePage> {
         preferredSize: Size.fromHeight(CommanMethods.appbarheight),
         child: appBarPoints(),
       ),
-      drawer: CommanMethods.mainDrawer(context),
+      drawer: mainDrawer(context),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {
@@ -58,14 +60,14 @@ class _StorePageState extends State<StorePage> {
       builder: (context, snapshot){
         switch(snapshot.connectionState){
           case ConnectionState.waiting:
-            return CommanMethods.mainAppBar('Store - Points: ${snapshot.data}');
+            return mainAppBar('Store - Points: ${snapshot.data}');
           case ConnectionState.done:
           default:
             if(snapshot.hasError){
               return Text("${snapshot.error}");
             }
             else if(snapshot.hasData){
-              return CommanMethods.mainAppBar('Store - Points: ${snapshot.data}');
+              return mainAppBar('Store - Points: ${snapshot.data}');
             }
             else{
               return Center(child: Text("Something went wrong"));

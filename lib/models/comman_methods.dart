@@ -70,67 +70,7 @@ class CommanMethods{
     await _cmp.getSettings(this);
   }
 
-  static AppBar mainAppBar(String title){
-    return AppBar(
-      toolbarHeight: appbarheight,
-      backgroundColor: barcolor,
-      title: Text(title),
-    );
-  }
-
-  static Drawer mainDrawer(context){
-    return Drawer(
-      backgroundColor: backgroundcolor,
-      width: 250,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const SizedBox(
-            height: 80,
-            child: DrawerHeader(
-              decoration: BoxDecoration(color: barcolor),
-              margin: EdgeInsets.all(0.0),
-              padding: EdgeInsets.all(0.0),
-              child: Center(child: Text("Application Name!")),
-            ),
-          ),
-          ListTile(
-            title: const Text('Home'),
-            onTap: (){
-              //onItemTapped(0);
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/home');
-            },
-          ),
-          ListTile(
-            title: const Text('Tasks'),
-            onTap: (){
-              //onItemTapped(0);
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/tasks');
-            },
-          ),
-          ListTile(
-            title: const Text('Store'),
-            onTap: (){
-              //onItemTapped(0);
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/store');
-            },
-          ),
-          ListTile(
-            title: const Text('Logout'),
-            onTap: (){
-              //onItemTapped(0);
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/login');
-            },
-          ),
-        ],
-      )
-    );
-  }
-
+  
 
   checkLastClear() async{
     if(_lastreset == null){

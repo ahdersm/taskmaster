@@ -4,6 +4,8 @@ import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/screens/_main_scaffold.dart';
 import 'package:taskmaster/services/database_service.dart';
+import 'package:taskmaster/shared/widgets/main_appbar_widget.dart';
+import 'package:taskmaster/shared/widgets/main_drawer_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,8 +20,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     cms.checkLastClear();
     return Scaffold(
-      appBar: CommanMethods.mainAppBar('Home'),
-      drawer: CommanMethods.mainDrawer(context),
+      appBar: mainAppBar('Home'),
+      drawer: mainDrawer(context),
       body: Row(
         children: [
           const Icon(Icons.backpack),

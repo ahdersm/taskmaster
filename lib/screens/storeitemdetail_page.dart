@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/storeitem.dart';
 import 'package:intl/intl.dart';
+import 'package:taskmaster/shared/widgets/main_appbar_widget.dart';
 
 final _formKey = GlobalKey<FormState>();
 
@@ -35,7 +36,7 @@ class _StoreItemDetailPageState extends State<StoreItemDetailPage> {
     _cms.getSettings();
     return Scaffold(
       backgroundColor: CommanMethods.backgroundcolor,
-      appBar: CommanMethods.mainAppBar('Item Details: ${_args.name} - Cost: ${_args.cost}'),
+      appBar: mainAppBar('Item Details: ${_args.name} - Cost: ${_args.cost}'),
       bottomNavigationBar: Container(
         padding: EdgeInsets.fromLTRB(0, 0, 0, 25),
         color: Colors.blueGrey,

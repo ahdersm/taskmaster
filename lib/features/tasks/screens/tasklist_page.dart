@@ -5,6 +5,8 @@ import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/custom_logger.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
+import 'package:taskmaster/shared/widgets/main_appbar_widget.dart';
+import 'package:taskmaster/shared/widgets/main_drawer_widget.dart';
 
 final _formKey = GlobalKey<FormState>();
 
@@ -63,8 +65,8 @@ class _TaskListPageState extends State<TaskListPage> {
     ];
     return Scaffold(
       backgroundColor: CommanMethods.backgroundcolor,
-      appBar: CommanMethods.mainAppBar('Tasks'),
-      drawer: CommanMethods.mainDrawer(context),
+      appBar: mainAppBar('Tasks'),
+      drawer: mainDrawer(context),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {
