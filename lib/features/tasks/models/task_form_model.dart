@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 class TaskFormModel {
-  String name = '';
-  String description = '';
-  String frequency = 'Daily';
+  final name = TextEditingController();
+  final description = TextEditingController();
   int points = 0;
+  enum frequency { daily, weekly }  
+  String frequency = 'Daily';
   List<TimeOfDay> times = [];
   List<String> selectedDays = [];
 }
+

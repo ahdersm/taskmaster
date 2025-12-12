@@ -6,341 +6,54 @@ import 'package:taskmaster/models/custom_logger.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
 
-final _formKey = GlobalKey<FormState>();
+/*
+Fields:
+  Name
+  Description
+  Points
+  Frequancy: Daily, Weekly
+  If Weekly:
+    Days: Sunday, Monday, Tuesday, Wendsday, Thursday, Friday, Saterday
+  Selected Times
 
-String _newname = '';
-String _newdescription = '';
-String _newfreq = '';
-int _points = 0;
-List<TimeOfDay> _newtimes = [];
-List<String> _selectedDays = [];
-//list of frequancy types for drop down list
-List<String> freqdropdown = [
-  'Daily',
-  //'Every X Days',
-  'Weekly',
-  //'Monthly',
-];
-//inital value for drop down in add task
-String _selectedFreq = 'Daily';
-int currentList = 0;
+I think I need to go with StatefulWidget as I believe the frequancy and the day selecter requires it
 
-Dialog addTaskDialog(){
-    return Dialog.fullscreen(
-      child: Form(
-        key: _formKey,
-        child: Consumer<Tasks>(
-          builder: (context, tasklist, child) { 
-            return StatefulBuilder(
-              builder: (context, setStateForDialog) {
-                return Column(
-                  children: [
-                    Text('Add Task'),
-                    taskName(),
-                    taskDescription(),
-                    selectFrequancy(setStateForDialog),
-                    weeklyDaySelector(setStateForDialog),
-                    Text("Selected Times"),
-                    listSelectedTimes(setStateForDialog),
-                    selectTime(setStateForDialog),
-                    taskpoints(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        saveButton(tasklist),
-                        IconButton(
-                          onPressed: (){
-                            getLogger('TaskListPage', "addTaskDialog").t("New Task Cancelled");
-                            Navigator.of(context).pop();
-                            //These are to reset the variables if the Dialog is exited without saving
-                            _selectedFreq = 'Daily';
-                            _selectedDays = [];
-                          },
-                          icon: Icon(Icons.close)
-                        )
-                      ],
-                    ),
-                  ],
-                );
-              }
-            );
-          }
-        ),
-      ),
-    );
-  }
+lets pull our the name field first
 
-TextFormField taskName() {
-  return TextFormField(
-    decoration: InputDecoration(
-      hintText: "Task Name",
-      hintStyle: TextStyle(color: Colors.black, fontSize: 16),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-    ),
-    validator: (value) {
-      if(value == null || value.isEmpty){
-        return 'Enter a task name';
-      }
-      return null;
-    },
-    onSaved: (value) {
-      _newname = value!;
-    },
-  );
+I think this should be a provided controller through an object almost like a data transfer object that when the save function is called it can just pass thw whole object instead of one value at a time.
+
+based on passing an about the whole object should be passed to widget
+
+I would think the validation would need to be done in the widget itself
+
+The taskdraft object will contin
+Fields:
+  Name
+  Description
+  Points
+  Frequancy
+  Day Selector
+  Selected Times
+
+Yes the Taskdraft object would be used again for editing so there should be a way to populate it from an entry that is passed to it. but maybe we make this whole widget so that it can be new and able to edit so its not having to be remade?
+
+I think the dialog should be responsible for disposing of the whole object itself when its done
+
+
+1. int, it should always have a value and be a default of 0
+2. this should be a ValueNotifier as this will change the UI by adding the day selector if weekly is changed
+3. I think option B is a good one as I can take that a bit better in the backend when making task entry in the database and have a column for each day that is a bool and if daily is selected it just marks them all as true and simplifies my logic when displaying them later on.
+4. this will need to be a ValueNotifier as well as this will be part of a tile list below where they are selected so they can be deleted.
+*/
+
+class TaskPage extends StatefulWidget {
+  const TaskPage({super.key});
+
+  @override
+  State<TaskPage> createState() => _TaskPageState();
 }
 
-TextFormField taskDescription() {
-  return TextFormField(
-    maxLines: null,
-    decoration: InputDecoration(
-      hintText: "Task Description",
-      hintStyle: TextStyle(color: Colors.black, fontSize: 16),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-    ),
-    validator: (value) {
-      if(value == null || value.isEmpty){
-        return 'Enter a task name';
-      }
-      return null;
-    },
-    onSaved: (value) {
-      _newdescription = value!;
-    },
-  );
+class _TaskPageState extends State<TaskPage> {
+  
 }
 
-DropdownButtonFormField<String> selectFrequancy(setStateForDialog) {
-  return DropdownButtonFormField(
-    value: _selectedFreq,
-    decoration: InputDecoration(
-      hintText: "Task Name",
-      hintStyle: TextStyle(color: Colors.black, fontSize: 16),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-    ),
-    items: freqdropdown.map((f){
-      return DropdownMenuItem(
-        value: f,
-        child: Text(f),
-      );
-    }).toList(),
-    onChanged: (value) {
-      setStateForDialog(() {
-        _selectedFreq = value!;
-      });
-    },
-    onSaved: (value){
-      _newfreq = value!;
-    },
-  );
-}
-
-Expanded listSelectedTimes(setStateForDialog){
-  if(_newtimes.isNotEmpty){
-    return Expanded(
-      child: ListView.builder(
-        shrinkWrap: true,
-        
-        itemCount: _newtimes.length,
-        itemBuilder: (context, index){
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-            child: Card(
-              child: ListTile(
-                title: Text(_newtimes[index]!.format(context)),
-                trailing: IconButton(
-                  onPressed: (){
-                    setStateForDialog(() {
-                      _newtimes.remove(_newtimes[index]);
-                    });
-                  },
-                  icon: Icon(Icons.close)
-                ),
-              )
-            )
-          );
-        }
-      ),
-    );
-  }
-  return Expanded(child: Text(''));
-    
-}
-
-TextButton selectTime(setStateForDialog){
-
-  return TextButton(
-    onPressed: () async {
-      final TimeOfDay? newtime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-      );
-      if(newtime != null){
-        setStateForDialog(() {
-          _newtimes.add(newtime);
-          _newtimes.sort();
-        });
-      }
-    },
-    child: const Text('Select Time')
-  );
-}
-
-Container weeklyDaySelector(setStateForDialog){
-  List<String> daylist = ['Monday','Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  if(_selectedFreq == "Weekly"){
-    return Container(
-      height: 85,
-      child: Column(
-        children: [
-          Text("Day Selector"),
-          Expanded(
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemExtent: MediaQuery.sizeOf(context).width / (daylist.length + .5), //this will adapt to any screen size horizontaly and the .5 is important for the side of the screen spacing
-              scrollDirection: Axis.horizontal,
-              itemCount: daylist.length,
-              padding: const EdgeInsets.all(0),
-              itemBuilder: (context, index){
-                if(_selectedDays.any((s) => s.contains(daylist[index]))){
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: SizedBox(
-                        height: 35,
-                        width: 35,
-                        child: ListTile(
-                          shape: CircleBorder(side: BorderSide()),
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          visualDensity: VisualDensity(vertical: -4),
-                          tileColor: Colors.red,
-                          title: Text(
-                            daylist[index].substring(0,3),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 10
-                            ),
-                          ),
-                          onTap: () {
-                            setStateForDialog(() {
-                              _selectedDays.remove(daylist[index]);
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                  );
-                }
-                else{
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: SizedBox(
-                        height: 35,
-                        width: 35,
-                        child: ListTile(
-                          shape: CircleBorder(side: BorderSide()),
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
-                          visualDensity: VisualDensity(vertical: -4),
-                          title: Text(
-                            daylist[index].substring(0,3),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 10
-                            ),
-                          ),
-                          onTap: () {
-                            setStateForDialog(() {
-                              _selectedDays.add(daylist[index]);
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                  );
-                }
-              }
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  else{
-    return Container();
-  }
-}
-
-TextFormField taskpoints(){
-  return TextFormField(
-    initialValue: "0",
-    keyboardType: TextInputType.number,
-    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-    decoration: InputDecoration(
-      hintText: "Task Point(s)",
-      hintStyle: TextStyle(color: Colors.black, fontSize: 16),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(5.0)),
-    ),
-    validator: (value) {
-      if(value == null || value.isEmpty){
-        return 'Enter a task name';
-      }
-      return null;
-    },
-    onSaved: (value) {
-      _points = int.parse(value!);
-    },
-  );
-}
-
-TextButton saveButton(Tasks tasklist){
-  return TextButton(
-    style: TextButton.styleFrom(
-      textStyle: Theme.of(context).textTheme.labelLarge, 
-    ),
-    onPressed: (){
-      setState(() {
-        getLogger('TaskListPage', "addTaskDialog").t("New Task Created");
-        if (_formKey.currentState!.validate()){
-          _formKey.currentState!.save();
-          
-          Task newtask = Task();
-          newtask.newtask(
-            name: _newname,
-            frequency: _newfreq,
-            description: _newdescription,
-            completetimes: _newtimes,
-            completedays: convertToDayInt(_selectedDays),
-            points: _points,
-          );
-          _tProvider.createTask(newtask);
-          allTasks = _tProvider.getAllTasks();
-          Navigator.of(context).pop();
-          _newname = '';
-          _newfreq = '';
-          _newdescription = '';
-          _newtimes = [];
-          _selectedFreq = 'Daily';
-          _selectedDays = [];
-          _points = 0;
-        }
-      });
-    },
-    child: const Text('Create'),
-  );
-}
-
-List<int>? convertToDayInt(List<String> days){
-  if(days.isEmpty){
-    return null;
-  }
-  const Map<String, int> weekdays = {'Monday': 1,'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6, 'Sunday': 7};
-  List<int>? intDays = [];
-  for(String day in days){
-    int convert = weekdays[day]!;
-    intDays.add(convert);
-  }
-  intDays.sort();
-  return intDays;
-}
