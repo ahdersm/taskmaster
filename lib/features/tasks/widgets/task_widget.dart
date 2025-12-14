@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:taskmaster/features/tasks/models/task_form_model.dart';
+import 'package:taskmaster/features/tasks/providers/task_api.dart';
+import 'package:taskmaster/features/tasks/providers/task_repository.dart';
+import 'package:taskmaster/features/tasks/widgets/day_selector_widget.dart';
+import 'package:taskmaster/features/tasks/widgets/fequancy_widget.dart';
+import 'package:taskmaster/features/tasks/widgets/time_selected_widget.dart';
+import 'package:taskmaster/features/tasks/widgets/time_selector_widget.dart';
+import 'package:taskmaster/features/tasks/widgets/time_zone_selector_widget.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/custom_logger.dart';
 import 'package:taskmaster/models/task.dart';
 import 'package:taskmaster/models/tasks.dart';
+import 'package:taskmaster/shared/providers/api/api_client.dart';
+import 'package:taskmaster/shared/widgets/object_description_widget.dart';
+import 'package:taskmaster/shared/widgets/object_name_widget.dart';
 
 /*
 Fields:
@@ -54,6 +65,50 @@ class TaskPage extends StatefulWidget {
 }
 
 class _TaskPageState extends State<TaskPage> {
-  
+  TaskFormModel tfm = TaskFormModel();
+  TaskRepository tr = TaskRepository(TaskApi(ApiClient()));
+
+  @override
+  void dispose() {
+    tfm.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog.fullscreen(
+      child: Column(
+        children: [
+          Text('Add Task'),
+          NameInputWidget(name: tfm.name, hint: "Task Name"),
+          DescriptionInputWidget(description: tfm.description, hint: "Task Description"),
+          NameInputWidget(name: tfm.points, hint: "Points"),
+          FrequancySelector(frequency: tfm.frequency),
+          DaySelector(frequency: tfm.frequency, selectedDays: tfm.selectedDays),
+          TimeZoneWidget(task: tfm),
+          TimeSelector(task: tfm),
+          TimeSelected(task: tfm),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    tr.CreateTask(tfm);
+                    Navigator.of(context).pop();
+                  }, 
+                  icon: Icon(Icons.save)
+                ),
+                IconButton(
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                  },
+                  icon: Icon(Icons.close)
+                )
+              ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 

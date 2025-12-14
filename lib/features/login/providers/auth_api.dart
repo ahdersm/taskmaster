@@ -10,7 +10,7 @@ class AuthApi {
       "email": email,
       "password": password,
     });
-
+    print("Response: ${response.data["accessToken"]}");
     return response.data;
   }
 

@@ -19,7 +19,7 @@ class ApiClient {
         // Check for 401 Unauthorized
         if (error.response?.statusCode == 401) {
           final refresh = await storage.read(key: "refresh_token");
-
+          
           if (refresh != null) {
             try {
               final newTokens = await _refreshToken(refresh);
@@ -46,13 +46,13 @@ class ApiClient {
   }
 
   Future<Map<String, String>> _refreshToken(String refresh) async {
-    final response = await dio.post("/auth/refresh", data: {
+    final response = await dio.post("/api/Account/RefreshToken", data: {
       "refresh_token": refresh
     });
 
     return {
-      "access": response.data["access_token"],
-      "refresh": response.data["refresh_token"],
+      "access": response.data["accessToken"],
+      "refresh": response.data["refreshToken"],
     };
   }
 }

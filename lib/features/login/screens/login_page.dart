@@ -98,9 +98,6 @@ class _LoginPageState extends State<LoginPage> {
                             //Password Section
                             Container(
                               padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                border: Border(bottom: BorderSide(color: Colors.grey)),
-                              ),
                               child: TextField(
                                 obscureText: _obscurePassword,
                                 controller: _password,

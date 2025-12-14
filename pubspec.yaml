@@ -19,6 +19,7 @@ dependencies:
   http: ^1.6.0
   dio: ^5.0.0
   flutter_secure_storage: ^9.0.0
+  timezone_dropdown: ^1.0.5
 
 
 dev_dependencies:

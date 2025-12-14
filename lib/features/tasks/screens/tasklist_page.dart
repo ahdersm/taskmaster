@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:taskmaster/features/tasks/widgets/task_widget.dart';
 import 'package:taskmaster/models/comman_methods.dart';
 import 'package:taskmaster/models/custom_logger.dart';
 import 'package:taskmaster/models/task.dart';
@@ -74,7 +75,7 @@ class _TaskListPageState extends State<TaskListPage> {
             context: context,
             builder: (context){
               getLogger("TaskListPage", "Build").t("User Pressed Create Task");
-              return addTaskDialog();
+              return TaskPage();
             }
           );
         }
