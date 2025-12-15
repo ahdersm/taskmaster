@@ -133,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         child: ElevatedButton(
                           onPressed: () async {
-                            await authRepo.login(_email.text, _password.text);
+                            //await authRepo.login(_email.text, _password.text);
                             Navigator.pushReplacementNamed(context, "/home");
                           },
                           child: Text("Login", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))

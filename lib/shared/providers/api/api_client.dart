@@ -4,9 +4,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiClient {
   final Dio dio = Dio();
   final storage = FlutterSecureStorage();
+  final String baseUrl = "https://10.0.2.2:8081";
 
   ApiClient() {
-    dio.options.baseUrl = "https://10.0.2.2:8081";
+    dio.options.baseUrl = baseUrl;
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final access = await storage.read(key: "access_token");
@@ -22,14 +23,16 @@ class ApiClient {
           
           if (refresh != null) {
             try {
-              final newTokens = await _refreshToken(refresh);
+              final tokenRefreshDio = Dio()..options.baseUrl = baseUrl;
+              final tokenRefreshResponse = await tokenRefreshDio.post("/api/Account/RefreshToken", data: {"refresh_token": refresh});
+              tokenRefreshDio.close();
 
-              await storage.write(key: "access_token", value: newTokens["access"]);
-              await storage.write(key: "refresh_token", value: newTokens["refresh"]);
+              await storage.write(key: "access_token", value: tokenRefreshResponse.data["access"]);
+              await storage.write(key: "refresh_token", value: tokenRefreshResponse.data["refresh"]);
 
               // Retry the original request
               error.requestOptions.headers["Authorization"] = 
-                "Bearer ${newTokens['access']}";
+                "Bearer ${tokenRefreshResponse.data["access"]}";
               final retryResponse = await dio.fetch(error.requestOptions);
               return handler.resolve(retryResponse);
 
@@ -56,3 +59,4 @@ class ApiClient {
     };
   }
 }
+
